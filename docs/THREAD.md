@@ -372,6 +372,12 @@ route changed from `/thread-t-shirts` to `/`.
   product, price, or line of copy changed.
 - `types/index.ts` is the Thread interfaces alone, unchanged, under a new
   header comment.
+- This spec. Paths now point at this repo, and the parent-only constraints
+  (its Stripe CSP, `ignoreBuildErrors`, its `.btn-*` classes) became this
+  site's own. Two rows of §1 and two items in §10 were also brought up to date
+  with the catalog, which already carried real prices and photos for the tees
+  before the move: the spec still said every price was hidden and every photo
+  a placeholder. No decision changed.
 - `app/page.tsx` is the parent's `app/thread-t-shirts/page.tsx` with the
   `metadata` export moved to `app/layout.tsx`, and the palette wrapper `<div>`,
   `ThreadStyles`, and the parent's `MainHeader`/`MainFooter` gone (the layout
