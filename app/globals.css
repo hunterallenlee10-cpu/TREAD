@@ -1,0 +1,106 @@
+@import 'tailwindcss';
+
+/* Border radii, carried over from the parent stylesheet so every card, button
+   and badge keeps the corner it had as a page inside the LEU site. The parent
+   drove these off a shadcn `--radius: 0.625rem` token through `@theme inline`;
+   this site has no shadcn tokens, so the resolved values are inlined directly
+   (0.625rem × 0.6 / 0.8 / 1 / 1.4 / 1.8 / 2.2 / 2.6). Without this block
+   Tailwind's defaults apply and the corners change — `rounded-lg` from 10px
+   to 8px, `rounded-md` from 8px to 6px. A bare `rounded` is unaffected either
+   way: it reads Tailwind's own 0.25rem, as it did on the parent. */
+@theme {
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
+  --radius-3xl: 1.375rem;
+  --radius-4xl: 1.625rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+
+   The colours below are `--thread-*` custom properties, set on `<html>` by
+   app/layout.tsx from `THREAD_PALETTE` in data/thread.ts, so this file holds
+   no palette hex of its own. The literal fallbacks exist only for the instant
+   before React hydrates the inline style, and match the palette exactly; a
+   palette edit that changed `ink`, `border` or `champagne` would want them
+   changed too.
+
+   Every visible border on the page already sets its own colour inline, so the
+   default below only decides what an unstyled `border` would look like. The
+   parent's default was its neutral shadcn token, near-white in a light OS
+   theme; here it is Thread's warm border. The default outline colour is
+   champagne, matching every `:focus-visible` rule in ThreadStyles.
+
+   Interactive states (buttons, toggles, cards, header and footer links) live
+   in components/thread/ThreadStyles.tsx, not here. That stylesheet is
+   unlayered, so it outranks Tailwind's utilities; element-wide rules like
+   these must stay in `@layer base`, where a utility still beats them.
+   --------------------------------------------------------------------------- */
+
+@layer base {
+  * {
+    border-color: var(--thread-border, #2A2724);
+    outline-color: var(--thread-champagne, #C2A878);
+  }
+
+  html {
+    @apply scroll-smooth;
+    background-color: var(--thread-ink, #0B0B0B);
+    /* Clears the fixed 80px header for `href="#section"` anchors. Change this,
+       the header's height, and `pt-20` on `<main>` together. */
+    scroll-padding-top: 80px;
+  }
+
+  body {
+    @apply font-sans antialiased text-white;
+    background-color: var(--thread-ink, #0B0B0B);
+  }
+
+  /* Smooth scrolling with reduced motion support. ThreadReveal relies on the
+     transition half of this; ThreadStyles and ThreadHeroBackdrop stop their
+     own keyframes explicitly. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* The parent site's selection was its own amber. Thread's accent is
+     champagne, the colour that keeps it related to the LEU gold without
+     repeating it. */
+  ::selection {
+    background-color: var(--thread-champagne, #C2A878);
+    color: var(--thread-ink, #0B0B0B);
+  }
+}
+
+/* The five parent utilities the Thread sections use, verbatim. */
+@layer components {
+  .section-padding {
+    @apply py-20 md:py-32;
+  }
+
+  .section-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .heading-xl {
+    @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
+  }
+
+  .heading-lg {
+    @apply text-3xl md:text-4xl font-bold tracking-tight;
+  }
+
+  .heading-md {
+    @apply text-2xl md:text-3xl font-bold tracking-tight;
+  }
+}

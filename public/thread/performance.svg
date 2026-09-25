@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800" role="img" aria-label="Placeholder illustration of a performance athletic shirt with raglan sleeves">
+  <rect width="800" height="800" fill="#141414"/>
+  <g fill="#2C2A26" stroke="#403C34" stroke-width="3" stroke-linejoin="round">
+    <polygon points="262,215 190,255 168,335 240,372 262,330"/>
+    <polygon points="538,215 610,255 632,335 560,372 538,330"/>
+    <rect x="262" y="210" width="276" height="430" rx="10"/>
+  </g>
+  <ellipse cx="400" cy="212" rx="56" ry="24" fill="#141414" stroke="#403C34" stroke-width="3"/>
+  <g stroke="#C2A878" stroke-opacity="0.45" stroke-width="3" fill="none">
+    <path d="M346 216 L268 330"/>
+    <path d="M454 216 L532 330"/>
+  </g>
+  <g fill="#403C34" fill-opacity="0.7">
+    <circle cx="340" cy="420" r="4"/><circle cx="380" cy="420" r="4"/><circle cx="420" cy="420" r="4"/><circle cx="460" cy="420" r="4"/>
+    <circle cx="360" cy="456" r="4"/><circle cx="400" cy="456" r="4"/><circle cx="440" cy="456" r="4"/>
+    <circle cx="340" cy="492" r="4"/><circle cx="380" cy="492" r="4"/><circle cx="420" cy="492" r="4"/><circle cx="460" cy="492" r="4"/>
+  </g>
+  <text x="400" y="716" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="26" letter-spacing="10" fill="#C2A878" fill-opacity="0.55">THREAD</text>
+  <text x="400" y="748" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" letter-spacing="4" fill="#8A8378" fill-opacity="0.8">PERFORMANCE</text>
+</svg>

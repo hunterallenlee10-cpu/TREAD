@@ -1,0 +1,17 @@
+# Environment variables
+# Ignore every .env file — including the .env.production / .env.development that
+# Next.js also loads — and keep only the committed example.
+.env*
+!.env.example
+
+# Dependencies and build output
+node_modules
+.next/
+.vercel/
+
+# Build artifacts
+next-env.d.ts
+*.tsbuildinfo
+
+# OS
+.DS_Store
