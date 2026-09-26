@@ -152,7 +152,6 @@ components/thread/ThreadCategoriesSection.tsx     "use client"
 components/thread/ThreadFeaturedSection.tsx       "use client"
 components/thread/ThreadOrderRequestForm.tsx      "use client"
 components/thread/ThreadFAQSection.tsx            "use client"
-components/thread/ThreadReveal.tsx                "use client"
 components/thread/ThreadUI.tsx
 components/thread/ThreadStyles.tsx
 components/thread/ThreadHeroSection.tsx

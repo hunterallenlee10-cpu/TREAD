@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { THREAD_PALETTE, threadCopy, threadFaqs } from "@/data/thread";
-import { ThreadReveal } from "@/components/thread/ThreadReveal";
 import {
   ThreadHeading,
   ThreadSection,
@@ -14,23 +13,22 @@ export function ThreadFAQSection() {
 
   return (
     <ThreadSection id="faq">
-      <ThreadReveal>
+      <div>
         <ThreadHeading
           eyebrow={threadCopy.faq.eyebrow}
           title={threadCopy.faq.title}
           description={threadCopy.faq.description}
         />
-      </ThreadReveal>
+      </div>
 
       <div className="mx-auto max-w-3xl space-y-3">
-        {threadFaqs.map((faq, index) => {
+        {threadFaqs.map((faq) => {
           const open = openId === faq.id;
 
           return (
-            <ThreadReveal
+            <div
               key={faq.id}
               className="thread-card thread-faq overflow-hidden rounded-lg"
-              delay={Math.min(index, 5) * 50}
             >
               <button
                 type="button"
@@ -59,7 +57,7 @@ export function ThreadFAQSection() {
                   {faq.answer}
                 </div>
               )}
-            </ThreadReveal>
+            </div>
           );
         })}
       </div>

@@ -11,7 +11,6 @@ import {
   useThreadCatalogFilter,
 } from "@/components/thread/ThreadCatalogFilterProvider";
 import { ThreadProductCard } from "@/components/thread/ThreadProductCard";
-import { ThreadReveal } from "@/components/thread/ThreadReveal";
 import { ThreadHeading, ThreadSection } from "@/components/thread/ThreadUI";
 
 export function ThreadCatalogSection() {
@@ -34,13 +33,13 @@ export function ThreadCatalogSection() {
 
   return (
     <ThreadSection id="catalog">
-      <ThreadReveal>
+      <div>
         <ThreadHeading
           eyebrow={threadCopy.catalog.eyebrow}
           title={threadCopy.catalog.title}
           description={threadCopy.catalog.description}
         />
-      </ThreadReveal>
+      </div>
 
       <div
         className="mb-10 flex flex-wrap justify-center gap-2"
@@ -71,16 +70,15 @@ export function ThreadCatalogSection() {
       </p>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {visible.map((product, index) => (
+        {visible.map((product) => (
           // Keyed by product id, so switching category remounts these and the
           // incoming set fades in rather than snapping into place.
-          <ThreadReveal
+          <div
             key={product.id}
             className="h-full"
-            delay={Math.min(index, 5) * 60}
           >
             <ThreadProductCard product={product} />
-          </ThreadReveal>
+          </div>
         ))}
       </div>
     </ThreadSection>

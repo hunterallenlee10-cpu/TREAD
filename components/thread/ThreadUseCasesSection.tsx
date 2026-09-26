@@ -1,5 +1,4 @@
 import { THREAD_PALETTE, threadCopy, threadUseCases } from "@/data/thread";
-import { ThreadReveal } from "@/components/thread/ThreadReveal";
 import {
   ThreadHeading,
   ThreadSection,
@@ -8,20 +7,19 @@ import {
 export function ThreadUseCasesSection() {
   return (
     <ThreadSection id="custom-apparel" alt>
-      <ThreadReveal>
+      <div>
         <ThreadHeading
           eyebrow={threadCopy.useCases.eyebrow}
           title={threadCopy.useCases.title}
           description={threadCopy.useCases.description}
         />
-      </ThreadReveal>
+      </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {threadUseCases.map((useCase, index) => (
-          <ThreadReveal
+        {threadUseCases.map((useCase) => (
+          <div
             key={useCase.id}
             className="h-full"
-            delay={Math.min(index, 5) * 60}
           >
             {/* Not a link, so it lights up on hover rather than lifting —
                 see the note on `.thread-card` in ThreadStyles. */}
@@ -39,7 +37,7 @@ export function ThreadUseCasesSection() {
                 {useCase.description}
               </p>
             </div>
-          </ThreadReveal>
+          </div>
         ))}
       </div>
     </ThreadSection>

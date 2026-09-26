@@ -10,7 +10,6 @@ import {
   threadUseCases,
 } from "@/data/thread";
 import { useThreadCart } from "@/components/thread/ThreadCartProvider";
-import { ThreadReveal } from "@/components/thread/ThreadReveal";
 import {
   ThreadHeading,
   ThreadSection,
@@ -188,7 +187,7 @@ export function ThreadOrderRequestForm() {
     <ThreadSection id="order-request" alt>
       {/* Heading only. The form itself never moves — a field sliding under a
           cursor mid-tap is worse than a static header is dull. */}
-      <ThreadReveal>
+      <div>
         {/* Decorative: the eyebrow and heading directly below name the brand
             and the action, so announcing the mark too would just repeat them.
             Matches how the LMM consultation form marks its logo. */}
@@ -205,7 +204,7 @@ export function ThreadOrderRequestForm() {
           title={threadCopy.order.title}
           description={threadCopy.order.description}
         />
-      </ThreadReveal>
+      </div>
 
       <form
         onSubmit={handleSubmit}

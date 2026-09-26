@@ -59,7 +59,7 @@ function galleryViews(product: ThreadProduct): ThreadGalleryView[] {
  * source of truth — Tailwind cannot read THREAD_PALETTE, and a `:hover` rule
  * cannot be expressed as an inline style.
  */
-// h-full because the reveal wrapper is now the grid item; without it the card
+// h-full because the catalog's wrapper div is the grid item; without it the card
 // stops stretching and the row loses its even bottom edge.
 // Both border colours ride custom properties rather than the inline style that
 // threadCardStyle would normally supply. An inline `borderColor` outranks every

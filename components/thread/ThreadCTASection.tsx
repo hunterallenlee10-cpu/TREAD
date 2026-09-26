@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { THREAD_PALETTE, THREAD_CONTACT_EMAIL, threadCopy } from "@/data/thread";
-import { ThreadReveal } from "@/components/thread/ThreadReveal";
 import {
   ThreadSection,
   threadPrimaryButtonClass,
@@ -13,7 +12,7 @@ const { finalCta } = threadCopy;
 export function ThreadCTASection() {
   return (
     <ThreadSection>
-      <ThreadReveal className="mx-auto max-w-2xl text-center">
+      <div className="mx-auto max-w-2xl text-center">
         {/* Closes the page on the mark it opened with. Named in the alt, not
             decorative: unlike the hero, nothing in this block's copy says
             "Thread", so the mark is the only thing identifying the brand here.
@@ -72,7 +71,7 @@ export function ThreadCTASection() {
             {THREAD_CONTACT_EMAIL}
           </a>
         </p>
-      </ThreadReveal>
+      </div>
     </ThreadSection>
   );
 }
