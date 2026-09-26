@@ -1,6 +1,5 @@
 import { Layers, Shirt, Ruler, ClipboardCheck } from "lucide-react";
 import { THREAD_PALETTE, threadCopy, threadQualityPillars } from "@/data/thread";
-import { ThreadReveal } from "@/components/thread/ThreadReveal";
 import {
   ThreadHeading,
   ThreadSection,
@@ -17,23 +16,22 @@ const pillarIcons: Record<string, React.ElementType> = {
 export function ThreadQualitySection() {
   return (
     <ThreadSection>
-      <ThreadReveal>
+      <div>
         <ThreadHeading
           eyebrow={threadCopy.quality.eyebrow}
           title={threadCopy.quality.title}
           description={threadCopy.quality.description}
         />
-      </ThreadReveal>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {threadQualityPillars.map((pillar, index) => {
+        {threadQualityPillars.map((pillar) => {
           const Icon = pillarIcons[pillar.id] ?? Layers;
 
           return (
-            <ThreadReveal
+            <div
               key={pillar.id}
               className="h-full"
-              delay={Math.min(index, 5) * 60}
             >
               <div className="thread-card h-full rounded-lg p-7">
                 <span
@@ -58,7 +56,7 @@ export function ThreadQualitySection() {
                   {pillar.description}
                 </p>
               </div>
-            </ThreadReveal>
+            </div>
           );
         })}
       </div>

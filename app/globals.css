@@ -59,9 +59,8 @@
     background-color: var(--thread-ink, #0B0B0B);
   }
 
-  /* Smooth scrolling with reduced motion support. ThreadReveal relies on the
-     transition half of this; ThreadStyles and ThreadHeroBackdrop stop their
-     own keyframes explicitly. */
+  /* Smooth scrolling with reduced motion support. ThreadStyles and
+     ThreadHeroBackdrop stop their own keyframes explicitly. */
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;

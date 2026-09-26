@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { THREAD_PALETTE, threadCopy } from "@/data/thread";
-import { ThreadReveal } from "@/components/thread/ThreadReveal";
 import { ThreadHeroBackdrop } from "@/components/thread/ThreadHeroBackdrop";
 import {
   threadPrimaryButtonClass,
@@ -24,10 +23,8 @@ export function ThreadHeroSection() {
 
       <div className="section-container">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
-          {/* Above the fold, so these resolve on mount rather than on scroll.
-              Staggered top to bottom so the eye is led down to the CTAs. */}
           <div>
-            <ThreadReveal>
+            <div>
               {/* A live claim, so it carries a live indicator. The dot is what
                   makes this read from across the hero — a hairline outline in
                   champagne on ink does not. */}
@@ -38,9 +35,9 @@ export function ThreadHeroSection() {
                 />
                 {hero.badge}
               </span>
-            </ThreadReveal>
+            </div>
 
-            <ThreadReveal delay={80}>
+            <div>
               <h1
                 className="heading-xl mt-6"
                 style={{ color: THREAD_PALETTE.bone }}
@@ -53,18 +50,18 @@ export function ThreadHeroSection() {
                   {hero.titleAccent}
                 </span>
               </h1>
-            </ThreadReveal>
+            </div>
 
-            <ThreadReveal delay={160}>
+            <div>
               <p
                 className="mt-6 max-w-xl text-lg leading-relaxed"
                 style={{ color: THREAD_PALETTE.muted }}
               >
                 {hero.description}
               </p>
-            </ThreadReveal>
+            </div>
 
-            <ThreadReveal delay={240}>
+            <div>
               <div className="mt-9 flex flex-col gap-4 sm:flex-row">
                 <a
                   href="#catalog"
@@ -81,18 +78,18 @@ export function ThreadHeroSection() {
                   <ArrowRight className="h-4 w-4" />
                 </a>
               </div>
-            </ThreadReveal>
+            </div>
 
             {/* Prices are quoted per order rather than listed, so this line
                 stops the missing prices from reading as an oversight. */}
-            <ThreadReveal delay={320}>
+            <div>
               <p
                 className="mt-6 text-sm"
                 style={{ color: THREAD_PALETTE.muted }}
               >
                 {hero.note}
               </p>
-            </ThreadReveal>
+            </div>
           </div>
 
           {/* The source PNG is square with the wordmark banded across the middle,

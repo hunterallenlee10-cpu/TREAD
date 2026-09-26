@@ -1,6 +1,5 @@
 import { ArrowRight } from "lucide-react";
 import { THREAD_PALETTE, threadCopy } from "@/data/thread";
-import { ThreadReveal } from "@/components/thread/ThreadReveal";
 import {
   ThreadEyebrow,
   ThreadSection,
@@ -15,7 +14,7 @@ const { story } = threadCopy;
 export function ThreadBrandStorySection() {
   return (
     <ThreadSection alt>
-      <ThreadReveal>
+      <div>
         <div className="mx-auto mb-14 max-w-3xl text-center">
           <ThreadEyebrow>{story.eyebrow}</ThreadEyebrow>
           <h2 className="heading-lg" style={{ color: THREAD_PALETTE.bone }}>
@@ -28,11 +27,11 @@ export function ThreadBrandStorySection() {
             {story.lead}
           </p>
         </div>
-      </ThreadReveal>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {story.paths.map((path, index) => (
-          <ThreadReveal key={path.id} className="h-full" delay={index * 80}>
+        {story.paths.map((path) => (
+          <div key={path.id} className="h-full">
             <a
               href={path.href}
               className="thread-card thread-card--link group flex h-full flex-col rounded-lg p-8"
@@ -57,7 +56,7 @@ export function ThreadBrandStorySection() {
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
               </span>
             </a>
-          </ThreadReveal>
+          </div>
         ))}
       </div>
     </ThreadSection>
