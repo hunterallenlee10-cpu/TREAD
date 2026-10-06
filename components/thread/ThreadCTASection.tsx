@@ -4,7 +4,6 @@ import { THREAD_PALETTE, THREAD_CONTACT_EMAIL, threadCopy } from "@/data/thread"
 import {
   ThreadSection,
   threadPrimaryButtonClass,
-  threadSecondaryButtonClass,
 } from "@/components/thread/ThreadUI";
 
 const { finalCta } = threadCopy;
@@ -47,22 +46,16 @@ export function ThreadCTASection() {
 
         <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
           <a
-            href="#order-request"
+            href="#catalog"
             className={threadPrimaryButtonClass}
           >
             {finalCta.primaryCta}
             <ArrowRight className="h-4 w-4" />
           </a>
-          <a
-            href="#catalog"
-            className={threadSecondaryButtonClass}
-          >
-            {finalCta.secondaryCta}
-          </a>
         </div>
 
         <p className="mt-8 text-sm" style={{ color: THREAD_PALETTE.muted }}>
-          Prefer email?{" "}
+          Questions? Email{" "}
           <a
             href={`mailto:${THREAD_CONTACT_EMAIL}`}
             className="underline underline-offset-4"

@@ -9,22 +9,43 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  THREAD_MAX_LINES as MAX_LINES,
+  THREAD_MAX_QUANTITY as MAX_QUANTITY,
+  getThreadProductById,
+  isThreadPurchasable,
+} from "@/data/thread";
 import type { ThreadCartItem } from "@/types";
 
 /**
- * Holds the order request being assembled.
+ * The shopping cart.
  *
- * This is not a shopping cart in the commerce sense — nothing here is priced,
- * reserved, or charged. It collects what the customer wants so the request form
- * can send it all at once, and the API route re-resolves every product against
- * the catalog before it reaches an inbox.
+ * Lines hold ids and labels, never prices: `subtotalCents` looks each price up
+ * in the catalog on every render, so a price change in data/thread.ts shows in
+ * carts that were filled before it. What the customer is charged is decided
+ * separately, on the server, by app/api/checkout — this subtotal is for
+ * display.
  */
 
-const STORAGE_KEY = "thread-order-request-v1";
+/**
+ * v2 since checkout. v1 held order requests, which could include pieces that
+ * are not for sale; starting fresh is simpler than migrating a quote list
+ * into a cart.
+ */
+const STORAGE_KEY = "thread-cart-v2";
 
-/** Kept in sync with the same limits enforced in app/api/thread-order/route.ts. */
-const MAX_QUANTITY = 1000;
-const MAX_LINES = 100;
+/**
+ * Empties the saved cart without needing the provider mounted — the order
+ * confirmation page has no cart of its own, and the customer arrives there
+ * straight from Stripe.
+ */
+export function clearSavedThreadCart(): void {
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Storage blocked. Nothing was saved, so there is nothing to clear.
+  }
+}
 
 interface ThreadCartContextValue {
   items: ThreadCartItem[];
@@ -33,6 +54,8 @@ interface ThreadCartContextValue {
   removeItem: (key: string) => void;
   clear: () => void;
   totalPieces: number;
+  /** Display only. The checkout route prices the order itself. */
+  subtotalCents: number;
   isOpen: boolean;
   setOpen: (open: boolean) => void;
   /** False until localStorage has been read, so counts don't flash on load. */
@@ -53,6 +76,26 @@ export function buildCartKey(
 function clampQuantity(value: number): number {
   if (!Number.isFinite(value)) return 1;
   return Math.min(MAX_QUANTITY, Math.max(1, Math.round(value)));
+}
+
+/** The line's product, if it is still for sale. */
+function purchasableProduct(item: ThreadCartItem) {
+  const product = getThreadProductById(item.productId);
+  return product && isThreadPurchasable(product) ? product : undefined;
+}
+
+/**
+ * Whether a saved line can still be bought exactly as saved. A product taken
+ * off sale, or a color or size it no longer runs, would only fail at checkout,
+ * so the line is dropped on load instead.
+ */
+function isStillAvailable(item: ThreadCartItem): boolean {
+  const product = purchasableProduct(item);
+  return Boolean(
+    product &&
+      product.colors.includes(item.colorId) &&
+      product.sizes.includes(item.sizeId)
+  );
 }
 
 /** Guards against a hand-edited or stale localStorage payload. */
@@ -91,6 +134,7 @@ export function ThreadCartProvider({ children }: { children: ReactNode }) {
           setItems(
             parsed
               .filter(isCartItem)
+              .filter(isStillAvailable)
               .map((item) => ({ ...item, quantity: clampQuantity(item.quantity) }))
               .slice(0, MAX_LINES)
           );
@@ -98,19 +142,19 @@ export function ThreadCartProvider({ children }: { children: ReactNode }) {
       }
     } catch {
       // A corrupt or blocked store isn't worth failing the page over — the
-      // customer just starts with an empty request.
+      // customer just starts with an empty cart.
     }
     setHydrated(true);
   }, []);
 
   // Guarded on `hydrated`, otherwise the empty initial state would overwrite a
-  // saved request on every page load before the read effect lands.
+  // saved cart on every page load before the read effect lands.
   useEffect(() => {
     if (!hydrated) return;
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     } catch {
-      // Storage full or unavailable. The in-memory request still works.
+      // Storage full or unavailable. The in-memory cart still works.
     }
   }, [items, hydrated]);
 
@@ -160,6 +204,16 @@ export function ThreadCartProvider({ children }: { children: ReactNode }) {
     [items]
   );
 
+  const subtotalCents = useMemo(
+    () =>
+      items.reduce(
+        (sum, item) =>
+          sum + (purchasableProduct(item)?.priceCents ?? 0) * item.quantity,
+        0
+      ),
+    [items]
+  );
+
   const value = useMemo<ThreadCartContextValue>(
     () => ({
       items,
@@ -168,11 +222,22 @@ export function ThreadCartProvider({ children }: { children: ReactNode }) {
       removeItem,
       clear,
       totalPieces,
+      subtotalCents,
       isOpen,
       setOpen,
       hydrated,
     }),
-    [items, addItem, updateQuantity, removeItem, clear, totalPieces, isOpen, hydrated]
+    [
+      items,
+      addItem,
+      updateQuantity,
+      removeItem,
+      clear,
+      totalPieces,
+      subtotalCents,
+      isOpen,
+      hydrated,
+    ]
   );
 
   return (

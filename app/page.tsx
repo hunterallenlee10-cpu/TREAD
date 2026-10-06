@@ -7,18 +7,14 @@ import { ThreadHeroSection } from "@/components/thread/ThreadHeroSection";
 import { ThreadBrandStorySection } from "@/components/thread/ThreadBrandStorySection";
 import { ThreadQualitySection } from "@/components/thread/ThreadQualitySection";
 import { ThreadCatalogSection } from "@/components/thread/ThreadCatalogSection";
-import { ThreadUseCasesSection } from "@/components/thread/ThreadUseCasesSection";
-import { ThreadProcessSection } from "@/components/thread/ThreadProcessSection";
-import { ThreadGroupOrderSection } from "@/components/thread/ThreadGroupOrderSection";
 import { ThreadFAQSection } from "@/components/thread/ThreadFAQSection";
-import { ThreadOrderRequestForm } from "@/components/thread/ThreadOrderRequestForm";
 import { ThreadCTASection } from "@/components/thread/ThreadCTASection";
 
 /**
  * Structured data says who Thread is and nothing it cannot back up. No
- * products, offers, or prices: Thread is pre-launch and most of the catalog is
- * placeholder inventory (docs/THREAD.md §8), so an `Offer` here would advertise
- * what the page itself is careful not to.
+ * products or offers yet: the tees are real and for sale, but the fabric
+ * weights in their copy are still unconfirmed (docs/THREAD.md §10), and an
+ * `Offer` would put that copy in front of search engines as fact.
  *
  * Every `@id` and `url` is built from SITE_URL, so attaching the custom domain
  * is one environment variable and nothing here.
@@ -52,13 +48,12 @@ const structuredData = {
 };
 
 /**
- * Thread is pre-launch: this page takes order requests, it does not sell.
- * See docs/THREAD.md for the reasoning and for what has to be confirmed before
- * any of the placeholder catalog is advertised as real.
+ * The store: the collection, the cart, and a Stripe-hosted checkout reached
+ * from the cart drawer. See docs/THREAD.md for the checkout contract and for
+ * what has to be confirmed before the "Coming soon" lines go on sale.
  *
- * The sections and their order are exactly as they were at /thread-t-shirts on
- * the parent site. The header, footer, ThreadStyles and the ink background now
- * come from app/layout.tsx.
+ * The header, footer, ThreadStyles and the ink background come from
+ * app/layout.tsx.
  */
 export default function HomePage() {
   return (
@@ -78,11 +73,7 @@ export default function HomePage() {
             <ThreadBrandStorySection />
             <ThreadQualitySection />
             <ThreadCatalogSection />
-            <ThreadUseCasesSection />
-            <ThreadProcessSection />
-            <ThreadGroupOrderSection />
             <ThreadFAQSection />
-            <ThreadOrderRequestForm />
             <ThreadCTASection />
           </main>
 

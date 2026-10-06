@@ -14,7 +14,7 @@ import { readWordmarkDataUrl, WORDMARK } from "@/lib/logo";
  * that has more than one child.
  */
 export const alt =
-  "Thread T-Shirts — premium everyday apparel and custom printed apparel";
+  "Thread T-Shirts — original premium everyday apparel";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -80,8 +80,7 @@ export default async function OpenGraphImage() {
             color: THREAD_PALETTE.muted,
           }}
         >
-          Custom apparel for businesses, teams, schools, events, and
-          fundraisers.
+          Original premium tees. Free shipping on every order.
         </div>
       </div>
     ),

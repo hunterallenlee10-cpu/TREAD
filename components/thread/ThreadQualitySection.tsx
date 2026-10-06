@@ -1,4 +1,4 @@
-import { Layers, Shirt, Ruler, ClipboardCheck } from "lucide-react";
+import { Layers, Shirt, Ruler } from "lucide-react";
 import { THREAD_PALETTE, threadCopy, threadQualityPillars } from "@/data/thread";
 import {
   ThreadHeading,
@@ -10,7 +10,6 @@ const pillarIcons: Record<string, React.ElementType> = {
   fabric: Layers,
   print: Shirt,
   fit: Ruler,
-  proof: ClipboardCheck,
 };
 
 export function ThreadQualitySection() {
@@ -24,7 +23,7 @@ export function ThreadQualitySection() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {threadQualityPillars.map((pillar) => {
           const Icon = pillarIcons[pillar.id] ?? Layers;
 

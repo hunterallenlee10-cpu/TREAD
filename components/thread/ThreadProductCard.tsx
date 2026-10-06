@@ -2,14 +2,16 @@
 
 import { useState, type CSSProperties } from "react";
 import Image from "next/image";
-import { ArrowRight, Check, ChevronDown, Minus, Plus } from "lucide-react";
+import { Check, ChevronDown, Minus, Plus } from "lucide-react";
 import type { ThreadProduct } from "@/types";
 import {
   THREAD_COMING_SOON_LABEL,
+  THREAD_MAX_QUANTITY as MAX_QUANTITY,
   THREAD_PALETTE,
   formatThreadPrice,
   getThreadColors,
   getThreadSizes,
+  isThreadPurchasable,
 } from "@/data/thread";
 import { useThreadCart } from "@/components/thread/ThreadCartProvider";
 import {
@@ -20,8 +22,6 @@ import {
   threadCardStyle,
   threadPrimaryButtonClass,
 } from "@/components/thread/ThreadUI";
-
-const MAX_QUANTITY = 1000;
 
 const CARD_IMAGE_SIZES =
   "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw";
@@ -80,31 +80,31 @@ export function ThreadProductCard({ product }: { product: ThreadProduct }) {
 
   const colors = getThreadColors(product.colors);
   const sizes = getThreadSizes(product.sizes);
-  const isPackage = product.isPackage === true;
 
   const [colorId, setColorId] = useState(colors[0]?.id ?? "");
-  // Deliberately unset. A defaulted size is the kind of thing someone misses on
-  // a 40-piece team order, and a wrong size costs a reprint.
+  // Deliberately unset. A defaulted size is the kind of thing someone misses
+  // at checkout, and a wrong size costs a return.
   const [sizeId, setSizeId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [showDetails, setShowDetails] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
 
-  const needsSize = !isPackage && !sizeId;
+  const needsSize = !sizeId;
 
   const handleAdd = () => {
-    if (needsSize) return;
-
     const color = colors.find((option) => option.id === colorId);
     const size = sizes.find((option) => option.id === sizeId);
+    // Checkout refuses a line without a real color and size, so one is never
+    // added to the cart.
+    if (!color || !size) return;
 
     addItem({
       productId: product.id,
       productName: product.name,
-      colorId: color?.id ?? "",
-      colorName: color?.name ?? "—",
-      sizeId: size?.id ?? "",
-      sizeLabel: size?.label ?? (isPackage ? "Assorted" : "—"),
+      colorId: color.id,
+      colorName: color.name,
+      sizeId: size.id,
+      sizeLabel: size.label,
       quantity,
     });
 
@@ -117,73 +117,15 @@ export function ThreadProductCard({ product }: { product: ThreadProduct }) {
       Math.min(MAX_QUANTITY, Math.max(1, current + delta))
     );
 
-  // Nothing fixed to configure, so this card sends the reader to the form to
-  // describe what they want instead of collecting a colour and a size. Checked
-  // before comingSoon: an offer that is open for requests is not coming soon.
-  //
-  // The whole card is the link rather than a button inside it — an anchor
-  // nested in an anchor is invalid, and a card-sized target is easier to hit
-  // than a text link at the bottom of it. CARD_CLASS already carries the lift
-  // and the border warm-up, so it sits in the grid looking like its siblings.
-  if (product.requestOnly) {
-    return (
-      <a
-        href="#order-request"
-        className={`${CARD_CLASS} focus-visible:[outline:2px_solid_var(--thread-card-border-hover)] focus-visible:outline-offset-4`}
-        style={cardStyle}
-      >
-        <div
-          className="relative aspect-square w-full"
-          style={{ backgroundColor: THREAD_PALETTE.ink }}
-        >
-          <Image
-            src={product.image}
-            alt={product.imageAlt}
-            fill
-            sizes={CARD_IMAGE_SIZES}
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        </div>
-
-        <div className="flex flex-1 flex-col p-6">
-          <h3
-            className="text-lg font-bold"
-            style={{ color: THREAD_PALETTE.bone }}
-          >
-            {product.name}
-          </h3>
-          <p
-            className="mt-1 text-sm font-semibold"
-            style={{ color: THREAD_PALETTE.champagne }}
-          >
-            {product.tagline}
-          </p>
-          <p
-            className="mt-4 flex-1 text-sm leading-relaxed"
-            style={{ color: THREAD_PALETTE.muted }}
-          >
-            {product.description}
-          </p>
-          <span
-            className="mt-6 inline-flex items-center gap-2 text-sm font-semibold"
-            style={{ color: THREAD_PALETTE.champagne }}
-          >
-            {product.ctaLabel}
-            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-          </span>
-        </div>
-      </a>
-    );
-  }
-
   // Nothing to configure or add yet, so the placeholder stops at the name.
-  // Rendering the swatches and a request button would invite an order for a
-  // line that does not exist.
+  // Rendering the swatches and a cart button would invite an order for a line
+  // that does not exist. A piece with no price lands here too, since checkout
+  // would refuse it (`isThreadPurchasable`).
   //
   // A product whose name IS the label — a piece with nothing announced yet,
   // not even what it is — gets the heading alone. Repeating the status
   // underneath it would read as a rendering bug rather than a placeholder.
-  if (product.comingSoon) {
+  if (!isThreadPurchasable(product)) {
     const nameIsStatus = product.name === THREAD_COMING_SOON_LABEL;
 
     return (
@@ -263,24 +205,6 @@ export function ThreadProductCard({ product }: { product: ThreadProduct }) {
           {formatThreadPrice(product)}
         </p>
 
-        {isPackage && product.includes && (
-          <ul className="mt-4 space-y-2">
-            {product.includes.map((line) => (
-              <li
-                key={line}
-                className="flex gap-2 text-sm"
-                style={{ color: THREAD_PALETTE.muted }}
-              >
-                <Check
-                  className="mt-0.5 h-4 w-4 flex-shrink-0"
-                  style={{ color: THREAD_PALETTE.champagne }}
-                />
-                {line}
-              </li>
-            ))}
-          </ul>
-        )}
-
         {colors.length > 0 && (
           <fieldset className="mt-6">
             <legend
@@ -309,7 +233,7 @@ export function ThreadProductCard({ product }: { product: ThreadProduct }) {
           </fieldset>
         )}
 
-        {!isPackage && sizes.length > 0 && (
+        {sizes.length > 0 && (
           <fieldset className="mt-5">
             <legend
               className="mb-2 text-xs font-semibold uppercase tracking-wider"
@@ -341,7 +265,7 @@ export function ThreadProductCard({ product }: { product: ThreadProduct }) {
             className="mb-2 block text-xs font-semibold uppercase tracking-wider"
             style={{ color: THREAD_PALETTE.muted }}
           >
-            {isPackage ? "Estimated Pieces" : "Quantity"}
+            Quantity
           </span>
           <div className="thread-stepper inline-flex items-center overflow-hidden rounded-md">
             <button
@@ -393,10 +317,10 @@ export function ThreadProductCard({ product }: { product: ThreadProduct }) {
           {justAdded ? (
             <>
               <Check className="h-4 w-4" />
-              Added to Request
+              Added to Cart
             </>
           ) : (
-            "Add to Request"
+            "Add to Cart"
           )}
         </button>
 

@@ -3,8 +3,14 @@
  *
  * Nothing here loads from another origin: next/font self-hosts Geist, Vercel
  * Analytics is served from /_vercel on the same origin, every product photo is
- * a file in /public/thread, and the order request form posts to /api on this
- * site. So the policy is 'self' everywhere, plus the two allowances Next.js
+ * a file in /public/thread, and the cart posts to /api/checkout on this site.
+ *
+ * Checkout needs nothing added here. The cart fetches /api/checkout (same
+ * origin), then sends the whole tab to checkout.stripe.com with
+ * `location.assign` — a top-level navigation, which this policy does not
+ * govern. No Stripe script, frame, or form post ever runs on these pages. Moving
+ * to embedded Checkout or Stripe Elements would change that: js.stripe.com in
+ * `script-src` and `frame-src`, and api.stripe.com in `connect-src`, first. So the policy is 'self' everywhere, plus the two allowances Next.js
  * itself needs: 'unsafe-inline' in script-src for the hydration bootstrap, and
  * in style-src for the inline style attributes the components use to carry the
  * palette (and for the `<style>` blocks ThreadStyles and ThreadHeroBackdrop
@@ -13,9 +19,9 @@
  *
  * `img-src` is the reason product photos cannot be hotlinked from a supplier or
  * a stock site: a Shopify, Printful, or Unsplash URL is blocked. Real photos go
- * in /public/thread/. If a third-party script or frame is ever added (a
- * payment form, a chat widget), it needs its origin listed here first or it
- * will be blocked silently.
+ * in /public/thread/. If a third-party script or frame is ever added (an
+ * embedded payment form, a chat widget), it needs its origin listed here first
+ * or it will be blocked silently.
  */
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -63,8 +69,9 @@ const nextConfig = {
       // The page lived at leeenterprisesunlimited.com/thread-t-shirts before it
       // had its own site. The parent site redirects that path here; this
       // catches anyone who kept the old path but swapped in the new host. The
-      // `#catalog` / `#order-request` fragments survive the redirect in the
-      // browser, and the section ids are unchanged.
+      // `#catalog` fragment survives the redirect in the browser. An old
+      // `#order-request` link lands at the top of the page, since the order
+      // request form is gone.
       {
         source: "/thread-t-shirts",
         destination: "/",
