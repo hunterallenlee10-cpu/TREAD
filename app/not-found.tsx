@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { THREAD_PALETTE, threadCopy } from "@/data/thread";
-import { orderRequestHref } from "@/data/navigation";
+import { shopHref } from "@/data/navigation";
 import {
   threadPrimaryButtonClass,
   threadSecondaryButtonClass,
@@ -39,8 +39,7 @@ export default function NotFound() {
           className="mx-auto mb-10 max-w-xl text-lg leading-relaxed"
           style={{ color: THREAD_PALETTE.muted }}
         >
-          Everything Thread makes — the collection, custom orders, and the order
-          request form — is on the one page.
+          Everything Thread makes is in the collection on the home page.
         </p>
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link href="/" className={`group ${threadPrimaryButtonClass}`}>
@@ -50,7 +49,7 @@ export default function NotFound() {
             />
             Back to Thread
           </Link>
-          <Link href={orderRequestHref} className={threadSecondaryButtonClass}>
+          <Link href={shopHref} className={threadSecondaryButtonClass}>
             {threadCopy.finalCta.primaryCta}
           </Link>
         </div>

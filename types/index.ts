@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
 // Thread T-Shirts
 //
-// Content for these lives in data/thread.ts. Thread is pre-launch, so part of
-// the catalog is placeholder inventory — see that file's header before editing.
+// Content for these lives in data/thread.ts. Part of the catalog is still
+// "Coming soon" placeholder inventory — see that file's header before editing.
 // ---------------------------------------------------------------------------
 
 export interface ThreadSize {
@@ -55,57 +55,27 @@ export interface ThreadProduct {
    * control labelled "Front" that shows the back is worse than no label.
    */
   imageSide?: "front" | "back";
-  /** Keys into THREAD_COLORS. Empty for design packages, which have no garment. */
+  /** Keys into THREAD_COLORS. Checkout accepts only these. */
   colors: string[];
-  /** Keys into THREAD_SIZES. */
+  /** Keys into THREAD_SIZES. Checkout accepts only these. */
   sizes: string[];
   /**
-   * Price in CENTS, or null to render "Price coming soon". Never store dollars
-   * here — the formatter divides by 100.
+   * Price in CENTS, or null to render "Price coming soon" and keep the product
+   * out of the cart. Never store dollars here — checkout sends this number to
+   * Stripe as the unit amount.
    */
   priceCents: number | null;
   featured: boolean;
-  /** Whether custom artwork can be printed on this piece. */
-  customizable: boolean;
-  /** True for design services rather than a physical garment. */
-  isPackage?: boolean;
-  /** What a package covers. Only meaningful when `isPackage` is true. */
-  includes?: string[];
   /**
    * Placeholder for a line that is not orderable yet. The card renders name and
-   * a "Coming soon" line only — no colors, sizes, quantity, or request button,
-   * since there is nothing to configure or add.
+   * a "Coming soon" line only — no colors, sizes, quantity, or cart button,
+   * since there is nothing to configure or buy.
    */
   comingSoon?: boolean;
-  /**
-   * For an offer with nothing fixed to configure — the reader describes what
-   * they want rather than picking from options. The whole card becomes a link
-   * to the order request form, and the colour, size, and quantity controls are
-   * not rendered, because there is nothing here to add to a request as a line
-   * item.
-   *
-   * Mutually exclusive with `comingSoon`; the card checks this one first.
-   */
-  requestOnly?: boolean;
-  /** Link text on a `requestOnly` card. Required for one to read sensibly. */
-  ctaLabel?: string;
 }
 
 export interface ThreadQualityPillar {
   id: string;
-  title: string;
-  description: string;
-}
-
-export interface ThreadUseCase {
-  id: string;
-  title: string;
-  description: string;
-}
-
-export interface ThreadProcessStep {
-  id: string;
-  step: number;
   title: string;
   description: string;
 }
@@ -116,7 +86,7 @@ export interface ThreadFaq {
   answer: string;
 }
 
-/** One configured line in the order-request cart. */
+/** One configured line in the cart. Prices are looked up, never stored. */
 export interface ThreadCartItem {
   /** `${productId}:${colorId}:${sizeId}` — the variant identity. */
   key: string;

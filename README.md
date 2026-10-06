@@ -1,34 +1,33 @@
 # Thread T-Shirts
 
-The website for Thread T-Shirts — premium everyday apparel and custom printed
-apparel for businesses, teams, schools, events, and fundraisers. A
+The online store for Thread T-Shirts — original premium everyday apparel. A
 [Lee Enterprises Unlimited](https://leeenterprisesunlimited.com) venture.
 
 > The site's own domain is not attached yet. Once it is, set
 > `NEXT_PUBLIC_SITE_URL` to it (see below) and link it here.
 
-One page, one API route. The page shows the collection and takes order
-requests; it does not take payment.
+One store page, one API route, one confirmation page. Customers fill a cart
+and pay through Stripe Checkout; shipping is free.
 
 The site was built as `/thread-t-shirts` inside the
 [Lee Enterprises Unlimited repo](https://github.com/hunterallenlee10-cpu/leu)
 and moved here on 2026-09-25 to run on its own. `docs/THREAD.md` is the build
-spec: the settled decisions, the cart and order-request contract, and what has
-to be confirmed before placeholder products are advertised as real. Read it
-before changing the catalog or the form.
+spec: the settled decisions, the cart and checkout contract, and what has to
+be confirmed before the "Coming soon" lines go on sale. Read it before changing
+the catalog or checkout.
 
 ## Stack
 
 - [Next.js](https://nextjs.org) 16 (App Router), React 19, TypeScript
 - Tailwind CSS 4
-- [Resend](https://resend.com) for the order request form
+- [Stripe Checkout](https://docs.stripe.com/payments/checkout) (hosted) for payment
 - Vercel Analytics (production only)
 
 ## Getting started
 
 ```bash
 pnpm install
-cp .env.example .env.local   # then fill in RESEND_API_KEY to test the form
+cp .env.example .env.local   # then fill in a sk_test_ STRIPE_SECRET_KEY to test checkout
 pnpm dev
 ```
 
@@ -50,15 +49,20 @@ pnpm build
 | `types/index.ts` | The shapes of the above |
 | `components/thread/` | The sections, the product card and gallery, the cart, and `ThreadStyles` (every hover, focus, and pressed state) |
 | `components/layout/` | Header and footer |
-| `app/page.tsx` | The page |
-| `app/api/thread-order/route.ts` | The order request handler |
+| `app/page.tsx` | The store page |
+| `app/api/checkout/route.ts` | Starts a Stripe Checkout Session from the cart |
+| `lib/checkout.ts` | Rebuilds every cart line, price included, from the catalog |
+| `lib/stripe.ts` | The Stripe client and the `thread` metadata tag |
+| `app/order/success/page.tsx` | The order confirmation Stripe returns customers to |
 | `app/icon.tsx`, `app/apple-icon.tsx`, `app/opengraph-image.tsx` | Favicon, home-screen icon, and link preview, generated at build time from the wordmark |
 | `lib/site.ts` | The site's own URL and name. Nothing else hardcodes a domain |
 | `public/thread/` | Product photos, placeholder art, and the wordmark |
 | `docs/THREAD.md` | The build spec |
 
 To add or change a product, edit its entry in `data/thread.ts` and put its
-photos in `public/thread/`; no component needs to change.
+photos in `public/thread/`; no component needs to change. A product is for
+sale once it has a `priceCents` and no `comingSoon` — the cart and checkout
+both follow from that.
 
 ## Environment variables
 
@@ -66,10 +70,7 @@ See `.env.example` for the full list with notes. In short:
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `RESEND_API_KEY` | In production | Sends the order request form |
-| `CONTACT_FROM_EMAIL` | No | Sender address. Defaults to `noreply@leeenterprisesunlimited.com`; set it to an address on a Resend-verified domain so delivery is not refused |
-| `CONTACT_TO_EMAIL` | No | Recipient. Defaults to the Lee Enterprises inbox |
-| `THREAD_TO_EMAIL` | No | Overrides the recipient for Thread requests only |
+| `STRIPE_SECRET_KEY` | To sell | The Lee Enterprises Unlimited Stripe account's secret key. `sk_test_` everywhere but Production |
 | `NEXT_PUBLIC_SITE_URL` | Once the domain is attached | Canonical origin for metadata and structured data |
 
 ## Deploying
@@ -79,9 +80,10 @@ configuration:
 
 1. In Vercel, **Add New → Project** and import this repository. The defaults
    (framework: Next.js, build: `next build`) are correct.
-2. Add `RESEND_API_KEY` and `CONTACT_FROM_EMAIL` as sensitive environment
-   variables — the same values the Lee Enterprises Unlimited project uses. The
-   form fails with `email_not_configured` until the key is set.
+2. Add `STRIPE_SECRET_KEY` as a sensitive environment variable: the LEU
+   account's live key for Production, its test key for Preview. Checkout fails
+   with `payments_not_configured` until it is set. See "Going live" in
+   `docs/THREAD.md` for the Stripe dashboard settings to check first.
 3. Deploy. The `*.vercel.app` URL works immediately; `lib/site.ts` picks it up
    from Vercel's own `VERCEL_PROJECT_PRODUCTION_URL`.
 4. Open the project's **Analytics** tab and click **Enable** (Web Analytics).
@@ -107,8 +109,7 @@ Every merge to `main` deploys once the project is connected.
 - `leeenterprisesunlimited.com/thread-t-shirts` redirects here.
 - The parent still lists Thread as one of its ventures: its nav, footer,
   contact form, "own sites" portfolio, and marketing page link here.
-- Order requests deliver to the same inbox as the parent site's forms, with
-  their own subject line. Set `THREAD_TO_EMAIL` to route them elsewhere.
-- Invoicing, when a customer needs one, runs through the parent's Stripe
-  integration, where Thread is the `thread` venture. This site takes no
-  payment.
+- Payments go to the parent's Stripe account. Every Checkout Session and
+  payment this site creates carries `metadata.site = "thread"`, and card
+  statements read with a `THREAD` suffix, so Thread's sales can be filtered
+  out of LEU's in the dashboard.

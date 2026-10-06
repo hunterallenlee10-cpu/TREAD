@@ -1,22 +1,26 @@
 /**
- * Thread T-Shirts — page content and placeholder catalog.
+ * Thread T-Shirts — page content and catalog.
  *
- * EVERYTHING customer-facing on the page lives here. Replacing the
- * placeholder catalog with real inventory should never require touching a
- * component: swap the objects below and the page follows.
+ * EVERYTHING customer-facing on the page lives here. Changing the catalog
+ * should never require touching a component: edit the objects below and the
+ * page, the cart, and checkout all follow.
  *
- * Placeholder status (as of the pre-launch build):
+ * What a product needs to be for sale:
  *
- *  - Every product carries `priceCents: null`, which renders as
- *    THREAD_PRICE_LABEL ("Price coming soon"). Set a real integer number of
- *    CENTS to show a price. Do not store dollars — `formatThreadPrice` at the
- *    bottom of this file divides by 100, and mixing the two silently shows
- *    $0.45 for a $45 shirt.
- *  - Every `image` points at a generated SVG in /public/thread/. They are
- *    deliberately obvious placeholders. Drop a real photo in /public/thread/
- *    and repoint the product's `image` — one product at a time is fine.
- *  - Product names, copy, and fabric specs are written to be plausible, not
- *    contractual. Confirm the fabric weights before any of this is advertised.
+ *  - A real `priceCents` — an integer number of CENTS. Do not store dollars:
+ *    `formatThreadCents` divides by 100 for display, and the checkout route
+ *    hands this exact number to Stripe as the unit amount, so $45 entered as
+ *    `45` charges the customer 45 cents. `null` renders THREAD_PRICE_LABEL and
+ *    keeps the product out of the cart.
+ *  - No `comingSoon`. See `isThreadPurchasable` at the bottom of this file —
+ *    the browser and the checkout route both decide what is for sale with it.
+ *  - At least one color and one size. Checkout rejects any color or size id a
+ *    product does not list, so these are the variants a customer can pay for.
+ *
+ * The Signature Tees are real: confirmed prices, size runs, and photography.
+ * The other categories are "Coming soon" placeholders on generated SVG art in
+ * /public/thread/. Fabric copy is written to be plausible, not contractual —
+ * confirm the fabric weights in `fabric` and `details` (docs/THREAD.md §10).
  *
  * Interfaces live in types/index.ts, matching how every other domain object in
  * this repo is typed.
@@ -26,11 +30,9 @@ import type {
   ThreadCategory,
   ThreadColorOption,
   ThreadFaq,
-  ThreadProcessStep,
   ThreadProduct,
   ThreadQualityPillar,
   ThreadSize,
-  ThreadUseCase,
 } from "@/types";
 
 // ---------------------------------------------------------------------------
@@ -81,27 +83,22 @@ export const THREAD_PRICE_LABEL = "Price coming soon";
 export const THREAD_COMING_SOON_LABEL = "Coming Soon";
 
 /**
- * Typical production time, quoted to customers in three places — the process
- * section, the turnaround FAQ, and the order form's intro. All three read from
- * this constant, so this is the only line to change.
- *
- * Covers manufacture and shipping, and the clock starts at proof approval, not
- * at the request. Every sentence using it already says so; keep that framing if
- * the copy is reworded.
+ * Cart limits, enforced in the browser by the cart and again on the server by
+ * the checkout route, which reads these same constants. MAX_LINES matches the
+ * line-item cap on a Stripe Checkout Session, so raising it past 100 turns an
+ * oversized cart into a failed checkout rather than a longer one.
  */
-export const THREAD_TURNAROUND = "2–4 weeks";
-
-/** Thread is pre-launch: the page takes requests, it does not sell. */
-export const THREAD_IS_PRELAUNCH = true;
+export const THREAD_MAX_QUANTITY = 50;
+export const THREAD_MAX_LINES = 100;
 
 /**
- * Every order request routes to the Lee Enterprises Unlimited inbox, the
- * address every form on the parent site uses.
+ * The contact address shown on the page — the Lee Enterprises Unlimited
+ * inbox, the address every form on the parent site uses.
  */
 export const THREAD_CONTACT_EMAIL = "ceo@leeenterprisesunlimited.com";
 
 /**
- * Every size Thread can print, in the order they render. A product opts into
+ * Every size Thread runs, in the order they render. A product opts into
  * the ones it actually runs, so adding to this list never changes an existing
  * listing — `getThreadSizes` filters by the product's own ids.
  */
@@ -171,20 +168,6 @@ export const threadCategories: ThreadCategory[] = [
       "Polos, button-downs, and quarter-zips that carry a logo without looking like a uniform.",
     image: "/thread/business.svg",
   },
-  {
-    id: "event",
-    name: "Event Shirts",
-    blurb:
-      "Volunteer, staff, and fundraiser shirts turned around on an event timeline.",
-    image: "/thread/event.svg",
-  },
-  {
-    id: "custom",
-    name: "Custom Design Packages",
-    blurb:
-      "Bring artwork or start from nothing — design, proofing, and production handled together.",
-    image: "/thread/custom.svg",
-  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -235,7 +218,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: ["m", "l", "xl", "2xl", "3xl"],
     priceCents: 2499,
     featured: true,
-    customizable: false,
   },
   // Same blank and same front as the tee above — black, left-chest mark — so
   // the back is the only thing separating them, and the copy leads with it.
@@ -270,7 +252,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: ["m", "l", "xl", "2xl", "3xl"],
     priceCents: 2499,
     featured: true,
-    customizable: false,
   },
   // The one listing here whose `image` is the back of the garment, and
   // deliberately so. This piece is printed on one side only, so its front is a
@@ -315,7 +296,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: ["s", "m", "l", "xl", "2xl"],
     priceCents: 2499,
     featured: true,
-    customizable: false,
   },
   // The performance counterpart to the cotton tees above — same slogan,
   // different garment, and a size run that goes a step further in both
@@ -356,7 +336,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: [...ALL_SIZES, "4xl"],
     priceCents: 2999,
     featured: true,
-    customizable: false,
   },
   {
     id: "tee-h1-athletic-black",
@@ -383,7 +362,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: [...ALL_SIZES, "4xl"],
     priceCents: 2999,
     featured: true,
-    customizable: false,
   },
   // Same garment and price as the royal above, but a different piece rather
   // than a colorway of it: the back print reads ACHIEVE YOUR DREAM., so it is
@@ -417,7 +395,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: [...ALL_SIZES, "4xl"],
     priceCents: 2999,
     featured: true,
-    customizable: false,
   },
   // First real piece that is not H1 Performance, and the first to run the
   // standard S-3XL set, so it uses ALL_SIZES directly.
@@ -453,7 +430,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: ALL_SIZES,
     priceCents: 2999,
     featured: true,
-    customizable: false,
   },
   // The first piece carrying the parent brand's own mark rather than a
   // venture's, which is why it closes the block instead of opening it: catalog
@@ -498,7 +474,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: ["s", "m", "l", "xl", "2xl"],
     priceCents: 2799,
     featured: true,
-    customizable: false,
   },
   // The performance counterpart to the cotton tee above, and the same
   // relationship the H1 athletic shirts have to the H1 cotton tees: same mark,
@@ -548,7 +523,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: [...ALL_SIZES, "4xl"],
     priceCents: 2899,
     featured: true,
-    customizable: false,
   },
   // Runs the standard S-3XL set, so it uses ALL_SIZES directly.
   //
@@ -596,7 +570,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: ALL_SIZES,
     priceCents: 2499,
     featured: true,
-    customizable: false,
   },
 
   // --- Hoodies & Pullovers ------------------------------------------------
@@ -606,10 +579,6 @@ export const threadProducts: ThreadProduct[] = [
   // slots still appear, which says how many pieces are coming without naming
   // any of them. None of the fabric or fit copy that used to sit here was ever
   // confirmed (see the placeholder note at the top of this file).
-  //
-  // Event Shirts and Custom Design Packages went the other way and collapsed
-  // to a single card each. Those two are open for requests today, so their
-  // cards have something to say; these do not.
   //
   // comingSoon strips each card to its name and status line, so the empty
   // colors/sizes here are never read. The `id`s stay descriptive — they are
@@ -630,7 +599,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: [],
     priceCents: null,
     featured: false,
-    customizable: false,
     comingSoon: true,
   },
   {
@@ -648,7 +616,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: [],
     priceCents: null,
     featured: false,
-    customizable: false,
     comingSoon: true,
   },
   {
@@ -666,7 +633,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: [],
     priceCents: null,
     featured: false,
-    customizable: false,
     comingSoon: true,
   },
 
@@ -691,7 +657,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: [],
     priceCents: null,
     featured: false,
-    customizable: false,
     comingSoon: true,
   },
   {
@@ -709,7 +674,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: [],
     priceCents: null,
     featured: false,
-    customizable: false,
     comingSoon: true,
   },
   {
@@ -727,7 +691,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: [],
     priceCents: null,
     featured: false,
-    customizable: false,
     comingSoon: true,
   },
 
@@ -751,7 +714,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: [],
     priceCents: null,
     featured: false,
-    customizable: false,
     comingSoon: true,
   },
   {
@@ -769,7 +731,6 @@ export const threadProducts: ThreadProduct[] = [
     sizes: [],
     priceCents: null,
     featured: false,
-    customizable: false,
     comingSoon: true,
   },
   {
@@ -787,84 +748,7 @@ export const threadProducts: ThreadProduct[] = [
     sizes: [],
     priceCents: null,
     featured: false,
-    customizable: false,
     comingSoon: true,
-  },
-
-  // --- Event Shirts -------------------------------------------------------
-  // There is no standing event line to stock, so this is requestOnly rather
-  // than comingSoon: the tagline states the current position and the whole
-  // card links to the order request form. Nothing here is waiting on a launch
-  // — an event order is taken whenever someone has an event.
-  //
-  // `tagline` is the line to edit when an event IS running. Swapping it for
-  // the event's name turns this card into a live announcement without any
-  // component change.
-  {
-    id: "event-request",
-    name: "Event Shirts",
-    categoryId: "event",
-    tagline: "No current events",
-    description:
-      "Contact us if you'd like your own event apparel made.",
-    fabric: "Chosen with you during the quote",
-    fit: "Chosen with you during the quote",
-    details: [
-      "Volunteer, staff, and attendee shirts",
-      "Turned around against a fixed date on the calendar",
-      "Digital proof before anything is printed",
-      "No payment taken and nothing committed at request time",
-    ],
-    image: "/thread/event.svg",
-    imageAlt: "Event Shirts — request event apparel",
-    colors: [],
-    sizes: [],
-    priceCents: null,
-    featured: false,
-    customizable: true,
-    requestOnly: true,
-    ctaLabel: "Request Event Apparel",
-  },
-
-  // --- Custom Design Packages ---------------------------------------------
-  // Open for requests rather than a fixed catalog line, so this uses
-  // requestOnly: the whole card links to the order request form and no colour,
-  // size, or quantity controls render. There is nothing to configure here —
-  // the point is that the reader describes what they want.
-  //
-  // Empty colors/sizes are correct and never read. `fabric` and `fit` are only
-  // surfaced in the details panel, which a requestOnly card does not render;
-  // they say "chosen with you" rather than inventing a spec.
-  //
-  // This replaced three fixed packages (Starter, Brand Identity, Full
-  // Production Run), which were the only products carrying `isPackage`. That
-  // rendering path is still in ThreadProductCard — the includes list, the
-  // "Estimated Pieces" label, and skipping the size picker — so bringing
-  // tiered packages back is a data change and nothing more.
-  {
-    id: "custom-request",
-    name: "Custom Design Packages",
-    categoryId: "custom",
-    tagline: "Whatever you'd like, we can make",
-    description:
-      "Bring a logo, a slogan, finished artwork, or nothing but a rough description. Tell Thread the garment, colors, placement, and quantities on the request form — in as much detail as you want — and you will get a written quote back before anything is produced.",
-    fabric: "Chosen with you during the quote",
-    fit: "Chosen with you during the quote",
-    details: [
-      "Any garment in the catalog, or one sourced for the run",
-      "Design work handled from your description if you do not have artwork",
-      "Digital proof before anything is printed",
-      "No payment taken and nothing committed at request time",
-    ],
-    image: "/thread/custom.svg",
-    imageAlt: "Custom Design Packages — describe a custom order",
-    colors: [],
-    sizes: [],
-    priceCents: null,
-    featured: false,
-    customizable: true,
-    requestOnly: true,
-    ctaLabel: "Describe What You Want",
   },
 ];
 
@@ -877,93 +761,56 @@ export const threadProducts: ThreadProduct[] = [
 
 export const threadCopy = {
   hero: {
-    badge: "Now Taking Orders",
+    badge: "Free Shipping on Every Order",
     title: "Wear Your Style.",
     titleAccent: "Elevate Everyday Essentials.",
     description:
-      "Thread is two things at once: an original apparel label, and a custom print service for anyone who needs their idea on a shirt. Premium blanks, careful prints, and a fit you can order for a whole team without guessing.",
-    primaryCta: "Browse the Collection",
-    secondaryCta: "Start a Custom Order",
+      "Thread is an original apparel label. Premium blanks, careful prints, and a fit that holds its shape — designed in-house and shipped free to your door.",
+    primaryCta: "Shop the Collection",
     note: "Every piece you wear supports the ventures behind Lee Enterprises Unlimited.",
   },
   story: {
-    eyebrow: "Two Ways to Work With Thread",
-    title: "A Label and a Print Shop",
-    lead: "Most apparel companies do one or the other. Thread does both, and they make each other better — the same standards that go into the original line go into every custom order.",
-    paths: [
-      {
-        id: "shop",
-        title: "Shop the Collection",
-        description:
-          "Original Thread pieces designed around fabric that holds up and a fit that stays consistent from tee to hoodie. Ready to wear, nothing to design.",
-        cta: "Browse the Collection",
-        href: "#catalog",
-      },
-      {
-        id: "custom",
-        title: "Order Custom Apparel",
-        description:
-          "Your logo, your design, your roster. For businesses, teams, schools, events, organizations, fundraisers, or one idea you want to see printed.",
-        cta: "Start a Custom Order",
-        href: "#order-request",
-      },
-    ],
+    eyebrow: "The Label",
+    title: "Original Pieces, Made to Last",
+    lead: "Thread makes its own apparel and nothing else. Every design starts here, goes onto fabric chosen to hold up, and is cut to a fit that stays consistent from one piece to the next.",
+    cta: "Shop the Collection",
+    href: "#catalog",
   },
   quality: {
     eyebrow: "Why Thread",
     title: "Built to Outlast the First Wash",
     description:
-      "Apparel is easy to make cheaply and hard to make well. These are the four things Thread refuses to compromise on.",
+      "Apparel is easy to make cheaply and hard to make well. These are the three things Thread refuses to compromise on.",
   },
   featured: {
     eyebrow: "Featured",
     title: "Start Here",
-    description:
-      "The pieces most orders are built around, across every category Thread produces.",
+    description: "The pieces to start with, picked from across the line.",
   },
   categories: {
     eyebrow: "Categories",
     title: "Find Your Piece",
     description:
-      "Eight categories covering everyday wear, performance, business apparel, and full custom production.",
+      "Signature tees today, with hoodies, long sleeves, and business wear on the way.",
   },
   catalog: {
     eyebrow: "The Collection",
     title: "Every Piece Thread Makes",
     description:
-      "Pick your colors, sizes, and quantities, then send the whole thing over as one request. Nothing is charged and nothing is committed.",
+      "Pick your color, size, and quantity, add it to your cart, and check out securely. Shipping is free on every order.",
     allLabel: "All Products",
-  },
-  useCases: {
-    eyebrow: "Custom Apparel",
-    title: "Who Thread Prints For",
-    description:
-      "If it needs a logo, a roster, a date, or an idea on the front of it, Thread has printed something like it.",
-  },
-  process: {
-    eyebrow: "The Process",
-    title: "How an Order Works",
-    description:
-      "Five steps from first message to a box at your door. Nothing prints until you have seen it and approved it.",
   },
   faq: {
     eyebrow: "Questions",
     title: "Answers Before You Ask",
     description:
-      "The things people want to know before sending a request. If yours is not here, ask in the form.",
-  },
-  order: {
-    eyebrow: "Order Request",
-    title: "Send Your Order Request",
-    description:
-      "Review what you picked, tell Thread how to reach you, and send it over. This takes no payment and no card details — you will get a written quote to approve first.",
+      "The things people want to know before they order. If yours is not here, send an email.",
   },
   finalCta: {
-    title: "Have an Idea? Send It Over.",
+    title: "Find Your Next Favorite Shirt.",
     description:
-      "Whether you know exactly what you want or have nothing but a rough concept, the fastest way to find out what it costs is to ask.",
-    primaryCta: "Start Your Order",
-    secondaryCta: "Browse the Collection",
+      "Pick your piece, check out in a minute, and it ships free to your door.",
+    primaryCta: "Shop the Collection",
   },
 };
 
@@ -988,139 +835,28 @@ export const threadQualityPillars: ThreadQualityPillar[] = [
     id: "fit",
     title: "Fit You Can Predict",
     description:
-      "Consistent sizing from S through 3XL, so ordering for a team means every person gets the fit they picked.",
-  },
-  {
-    id: "proof",
-    title: "Nothing Prints Unapproved",
-    description:
-      "Every custom order gets a digital proof first. Production does not start until you have signed off on exactly what you are getting.",
-  },
-];
-
-export const threadUseCases: ThreadUseCase[] = [
-  {
-    id: "business",
-    title: "Businesses",
-    description:
-      "Staff apparel, branded polos, and uniforms that make a team look established without looking corporate.",
-  },
-  {
-    id: "teams",
-    title: "Teams & Clubs",
-    description:
-      "Jerseys, warm-ups, and shooters with names and numbers handled per player across the full roster.",
-  },
-  {
-    id: "schools",
-    title: "Schools",
-    description:
-      "Class shirts, club apparel, spirit wear, and staff gear produced on a school-year timeline.",
-  },
-  {
-    id: "events",
-    title: "Events",
-    description:
-      "Volunteer, staff, and attendee shirts turned around against a fixed date on the calendar.",
-  },
-  {
-    id: "organizations",
-    title: "Organizations",
-    description:
-      "Member apparel and branded pieces that keep a consistent look across chapters and locations.",
-  },
-  {
-    id: "fundraisers",
-    title: "Fundraisers",
-    description:
-      "Campaign shirts structured so the margin actually funds the cause behind them.",
-  },
-  {
-    id: "personal",
-    title: "Personal Projects",
-    description:
-      "One idea, a small run, and a design team to get it from a sentence to a finished shirt.",
-  },
-  {
-    id: "reorders",
-    title: "Reorders",
-    description:
-      "Approved artwork stays on file, so a second run matches the first without starting over.",
-  },
-];
-
-export const threadProcessSteps: ThreadProcessStep[] = [
-  {
-    id: "request",
-    step: 1,
-    title: "Send the Request",
-    description:
-      "Pick your pieces, sizes, and colors, then submit the request with what you have in mind. No payment is taken at this stage.",
-  },
-  {
-    id: "reply",
-    step: 2,
-    title: "We Reply Within One Business Day",
-    description:
-      "Thread follows up to confirm quantities, garment choices, and artwork, and to answer anything the form did not cover.",
-  },
-  {
-    id: "proof",
-    step: 3,
-    title: "Design & Digital Proof",
-    description:
-      "Send your artwork or have Thread design it. Either way you get a digital proof and a written quote before anything is printed.",
-  },
-  {
-    id: "approve",
-    step: 4,
-    title: "You Approve, Then We Print",
-    description:
-      "Production starts only after you sign off on the proof and the quote. Nothing is printed on a guess.",
-  },
-  {
-    id: "deliver",
-    step: 5,
-    title: "Production & Shipping",
-    description: `Most orders are produced in ${THREAD_TURNAROUND} and shipped to you, sorted and packed by size.`,
+      "Consistent sizing from S through 3XL, so the size you pick is the fit you get.",
   },
 ];
 
 export const threadFaqs: ThreadFaq[] = [
   {
-    id: "minimum",
-    question: "Is there a minimum order?",
-    answer:
-      "No. Custom printing runs at any quantity, down to a single piece. Order one shirt to see how it comes out before committing to a full run, or one because one is all you need.",
-  },
-  {
-    id: "turnaround",
-    question: "How long does an order take?",
-    answer: `Most orders are produced in ${THREAD_TURNAROUND} once artwork and quantities are approved. The clock starts at proof approval, not at the request — so getting artwork settled early is the fastest way to move a deadline up.`,
-  },
-  {
-    id: "design",
-    question: "What if I don't have a design?",
-    answer:
-      "Thread designs it for you. Come with a rough idea, a sketch, or nothing but a description, and you will get a concept back to react to. If you already have artwork, send it and Thread will prepare it for print.",
-  },
-  {
-    id: "artwork",
-    question: "How do I send my artwork?",
-    answer:
-      "Submit the order request first, and Thread will reply with an email address to send files to. Vector formats print best, but a high-resolution image works for most designs.",
-  },
-  {
-    id: "printing",
-    question: "Who actually prints the shirts?",
-    answer:
-      "Thread produces through a professional custom apparel supplier with commercial-grade equipment, which is what keeps quality consistent across a large run and reorders matching the original.",
-  },
-  {
     id: "shipping",
-    question: "Do you ship?",
+    question: "How much is shipping?",
     answer:
-      "Yes. Orders ship to you, sorted and packed by size. Shipping is quoted with the rest of the order so there is no surprise at the end.",
+      "Nothing. Shipping is free on every order to an address in the United States, with no minimum.",
+  },
+  {
+    id: "payment",
+    question: "How do I pay?",
+    answer:
+      "At checkout, by card — or Apple Pay or Google Pay where your device supports it. Payment is handled by Stripe, so your card details never touch this site.",
+  },
+  {
+    id: "confirmation",
+    question: "How do I know my order went through?",
+    answer:
+      "You land on an order confirmation page as soon as payment goes through, and a receipt is emailed to the address you entered at checkout.",
   },
   {
     id: "sizes",
@@ -1128,32 +864,7 @@ export const threadFaqs: ThreadFaq[] = [
     answer:
       "S through 3XL across the line. Sizing stays consistent between styles, so a large in a tee matches a large in a hoodie.",
   },
-  {
-    id: "payment",
-    question: "Am I paying anything by submitting this?",
-    answer:
-      "No. The request form takes no payment and no card details. It starts a conversation — you will get a written quote to approve before any money changes hands.",
-  },
-  {
-    id: "reorder",
-    question: "Can I reorder later?",
-    answer:
-      "Yes. Approved artwork stays on file, so a reorder matches the first run without redoing the design work.",
-  },
 ];
-
-export const threadGroupOrderInfo = {
-  title: "Group & Bulk Orders",
-  description:
-    "Larger orders are quoted individually. Garment mix, print colors, placement count, and quantity all move the number, so a real conversation gets you a better price than a rate card would.",
-  points: [
-    "Sizes collected and sorted per person before delivery",
-    "Names and numbers handled individually where you need them",
-    "Consistent color matching across the full run",
-    "Reorder pricing held so a second run matches the first",
-  ],
-  ctaLabel: "Contact Us for Group Pricing",
-};
 
 // ---------------------------------------------------------------------------
 // Lookups
@@ -1163,20 +874,8 @@ export function getThreadProductById(id: string): ThreadProduct | undefined {
   return threadProducts.find((product) => product.id === id);
 }
 
-export function getThreadProductsByCategory(
-  categoryId: string
-): ThreadProduct[] {
-  return threadProducts.filter((product) => product.categoryId === categoryId);
-}
-
 export function getFeaturedThreadProducts(): ThreadProduct[] {
   return threadProducts.filter((product) => product.featured);
-}
-
-export function getThreadCategoryById(
-  id: string
-): ThreadCategory | undefined {
-  return threadCategories.find((category) => category.id === id);
 }
 
 /** Resolves a product's color IDs to full swatch objects, skipping unknowns. */
@@ -1192,14 +891,28 @@ export function getThreadSizes(sizeIds: string[]): ThreadSize[] {
 }
 
 /**
+ * Whether a product can go in the cart and through checkout. The checkout
+ * route applies this same test on the server, so the two cannot disagree about
+ * what is for sale.
+ */
+export function isThreadPurchasable(product: ThreadProduct): boolean {
+  return !product.comingSoon && product.priceCents !== null;
+}
+
+/** Formats an integer number of cents as US dollars, dropping a bare ".00". */
+export function formatThreadCents(cents: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
+  }).format(cents / 100);
+}
+
+/**
  * Display price for a product. Returns THREAD_PRICE_LABEL while `priceCents`
  * is null, so setting a real price is the only change needed to show one.
  */
 export function formatThreadPrice(product: ThreadProduct): string {
   if (product.priceCents === null) return THREAD_PRICE_LABEL;
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: product.priceCents % 100 === 0 ? 0 : 2,
-  }).format(product.priceCents / 100);
+  return formatThreadCents(product.priceCents);
 }

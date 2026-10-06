@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { THREAD_PALETTE, threadCopy } from "@/data/thread";
-import { orderRequestHref, siteNav } from "@/data/navigation";
+import { shopHref, siteNav } from "@/data/navigation";
 
 /**
  * The header for a one-page site: the wordmark, an anchor bar for the
@@ -106,7 +106,7 @@ export function SiteHeader() {
 
         <div className="hidden items-center sm:flex">
           <a
-            href={orderRequestHref}
+            href={shopHref}
             className="thread-btn thread-btn--primary inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold"
           >
             {threadCopy.finalCta.primaryCta}
@@ -162,7 +162,7 @@ export function SiteHeader() {
             </a>
           ))}
           <a
-            href={orderRequestHref}
+            href={shopHref}
             onClick={closeMenu}
             className="thread-btn thread-btn--primary mt-3 inline-flex items-center justify-center rounded-lg px-5 py-3 text-base font-semibold sm:hidden"
           >

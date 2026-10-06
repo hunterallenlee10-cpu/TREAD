@@ -6,18 +6,20 @@ components instead of re-deriving choices.
 
 The page was built as `/thread-t-shirts` inside the Lee Enterprises Unlimited
 repo and moved here on 2026-09-25, as the homepage of its own repo and site.
-§11 records what changed in the move and what stayed behind. Every path below
-is relative to this repo, and every content decision still stands.
+§11 records what changed in the move. On 2026-10-06 it became a store: the
+custom printing service came off the site and Stripe Checkout went in — §12
+records that change. Every path below is relative to this repo.
 
-**Status:** built. The page passes a production build; what remains is business
-confirmation, not code — see §10.
+**Status:** built. The store passes a production build; what remains is
+Stripe dashboard setup and business confirmation, not code — see §10.
 
 | Done | File |
 | --- | --- |
-| ✅ | `data/thread.ts` — palette, catalog, all page copy |
-| ✅ | `types/index.ts` — the Thread interfaces (the whole file in this repo; they were one section of a shared file in the parent) |
+| ✅ | `data/thread.ts` — palette, catalog, all page copy, cart limits |
+| ✅ | `types/index.ts` — the Thread interfaces |
 | ✅ | `public/thread/*` — product photos, SVG placeholders, and the wordmark |
-| ✅ | 21 files in `components/thread/`, `app/page.tsx`, and `app/api/thread-order/route.ts` (§4) |
+| ✅ | `components/thread/`, `app/page.tsx` (§3, §4) |
+| ✅ | Checkout: `lib/checkout.ts`, `lib/stripe.ts`, `app/api/checkout/route.ts`, `app/order/success/page.tsx` (§6) |
 | ✅ | Wiring on the parent site (§7) |
 
 ---
@@ -27,38 +29,35 @@ confirmation, not code — see §10.
 | | |
 | --- | --- |
 | Route | `/`, on its own site. `leeenterprisesunlimited.com/thread-t-shirts` redirects here |
-| Launch state | **Pre-launch.** Takes requests, does not sell |
-| Prices | Per product. `priceCents: null` renders "Price coming soon" |
+| What it sells | **Thread's own products only.** No custom printing, group orders, or quotes |
+| Launch state | **Selling.** The Signature Tees are for sale; the other categories are "Coming soon" |
+| Prices | Per product, in cents. `priceCents: null` renders "Price coming soon" and cannot be bought |
+| Checkout | **Stripe Checkout, hosted.** The customer pays on checkout.stripe.com |
+| Stripe account | The **Lee Enterprises Unlimited** account. Every session and payment is tagged `metadata.site = "thread"` |
+| Shipping | **Free**, US addresses only |
+| Tax | Not collected (Stripe Tax is off) |
 | Product photos | Real photos for the tees; generated SVG placeholders elsewhere, swappable per product |
-| Turnaround | 2–4 weeks, from **proof approval** (`THREAD_TURNAROUND`) |
-| Custom minimum | **None.** Custom printing runs at any quantity, down to one piece |
-| Printing | "Professional custom apparel supplier with commercial-grade equipment" |
-| Fulfillment | Shipping |
 | Sizes | S, M, L, XL, 2XL, 3XL (4XL is a per-product opt-in) |
-| Design | Both — Thread designs it, or the customer submits artwork |
-| Group pricing | "Contact us for group pricing." No tiers, no numbers |
-| Contact | `ceo@leeenterprisesunlimited.com`, same as every form on the parent site |
-| Checkout | **Order request only.** No payment, no card fields |
+| Cart limits | 1–50 per line, 100 lines (`THREAD_MAX_QUANTITY`, `THREAD_MAX_LINES`) |
+| Order records | The Stripe dashboard. There is no database and no webhook |
+| Contact | `ceo@leeenterprisesunlimited.com` |
 
-### Why no real checkout
+### Why hosted Checkout and no webhook
 
-This site has no payment integration at all. On the parent site, Stripe is
-wired for exactly two flows, neither of which is a product catalog: a single
-pay-what-you-choose support payment, and an admin-only invoicing route that
-must never be called from a browser (`docs/STRIPE.md` §2 in the Lee
-Enterprises Unlimited repo). Fixed-price Checkout items were built there and
-removed. There is no database, and the parent's Stripe notes warn against
-automated fulfillment until webhook idempotency is persisted. Thread customers
-who need an invoice are invoiced from the parent's Stripe account, tagged
-`thread`.
+Hosted Checkout keeps every card field off this site: the cart posts ids to
+`/api/checkout`, the route creates a session, and the browser navigates to
+Stripe. Stripe collects the card, the shipping address, and the phone number,
+offers Apple Pay and Google Pay where the device supports them, and emails the
+receipt. Nothing from Stripe loads on these pages, so the Content Security
+Policy stays `'self'`-only (§8).
 
-If real checkout is added later: **prices must resolve server-side from a SKU.**
-A cart that posts prices from `data/thread.ts` is exploitable. The parent's
-support flow inverts the usual "client never sends a price" rule specifically
-because it is pay-what-you-choose — that exemption does not transfer to a
-catalog. A checkout also needs its payment origin added to the Content
-Security Policy in `next.config.mjs`, which currently allows nothing outside
-this site.
+There is no webhook in v1. Orders are fulfilled by hand from the Stripe
+dashboard, where each line item's name carries its color and size, and the
+parent's Stripe notes warn against automated fulfillment until webhook
+idempotency is persisted somewhere. A packing-slip email on
+`checkout.session.completed` is the natural next step; it needs a webhook
+secret, signature verification on the raw body, and a filter on
+`metadata.site === "thread"`, since the account is shared.
 
 ---
 
@@ -98,8 +97,12 @@ recipes in `ThreadUI.tsx`, styled by `ThreadStyles`:
 
 ```tsx
 <a href="#catalog" className={threadPrimaryButtonClass}>…</a>
-<a href="#order-request" className={threadSecondaryButtonClass}>…</a>
+<Link href="/" className={threadSecondaryButtonClass}>…</Link>
 ```
+
+Stripe's hosted Checkout page shows the LEU account's name, logo, and brand
+colour (Stripe **Settings → Branding**), not Thread's. Those settings are
+account-wide, so changing them changes LEU's own checkout pages too.
 
 Shared utilities in `app/globals.css`, verbatim from the parent: `.section-container`,
 `.section-padding`, `.heading-xl`, `.heading-lg`, `.heading-md`.
@@ -113,26 +116,26 @@ catalog-filter providers. Metadata lives in `app/layout.tsx`.
 
 | # | Section | Content source |
 | --- | --- | --- |
-| 1 | Hero | Status badge, headline, two CTAs → `#catalog` and `#order-request` |
-| 2 | Brand story | The two paths: original label **and** custom print service |
-| 3 | Quality | `threadQualityPillars` (4) |
+| 1 | Hero | Free-shipping badge, headline, one CTA → `#catalog` |
+| 2 | Brand story | `threadCopy.story` — one statement and a link to the collection |
+| 3 | Quality | `threadQualityPillars` (3) |
 | 4 | Catalog | `threadProducts` + category filter. `id="catalog"` |
-| 5 | Use cases | `threadUseCases` (8). `id="custom-apparel"` |
-| 6 | Process | `threadProcessSteps` (5). `id="process"` |
-| 7 | Group orders | `threadGroupOrderInfo` |
-| 8 | FAQ | `threadFaqs`, accordion. `id="faq"` |
-| 9 | Order request | Cart review + contact form. `id="order-request"` |
-| 10 | Closing CTA | — |
+| 5 | FAQ | `threadFaqs`, accordion. `id="faq"` |
+| 6 | Closing CTA | → `#catalog` |
 
-Plus `ThreadCartDrawer`, fixed-position, rendered once at page level.
+Plus `ThreadCartDrawer`, fixed-position, rendered once at page level. It is
+where checkout starts.
 
 `ThreadFeaturedSection` and `ThreadCategoriesSection` are built — featured
 products, and category cards that filter the catalog and scroll to it — but
-the page does not render them, and had already stopped rendering them on the
-parent site before the move. Adding either back is one line in `app/page.tsx`.
+the page does not render them. Adding either back is one line in
+`app/page.tsx`.
+
+`app/order/success/page.tsx` is the one other page: the order confirmation
+Stripe returns the customer to (§6).
 
 Shell: `app/layout.tsx` renders `ThreadStyles`, a skip link, `SiteHeader`, the
-route, and `SiteFooter`. The page's `<main id="main-content" className="pt-20">`
+route, and `SiteFooter`. Each page's `<main id="main-content" className="pt-20">`
 clears the fixed 80px header and is the skip link's target.
 
 ---
@@ -141,16 +144,19 @@ clears the fixed 80px header and is the skip link's target.
 
 ```
 app/page.tsx
-app/api/thread-order/route.ts
+app/api/checkout/route.ts
+app/order/success/page.tsx
+lib/checkout.ts
+lib/stripe.ts
 components/thread/ThreadCartProvider.tsx          "use client"
 components/thread/ThreadCatalogFilterProvider.tsx "use client"
 components/thread/ThreadCartDrawer.tsx            "use client"
+components/thread/ThreadClearCartOnMount.tsx      "use client"
 components/thread/ThreadProductCard.tsx           "use client"
 components/thread/ThreadProductGallery.tsx        "use client"
 components/thread/ThreadCatalogSection.tsx        "use client"
 components/thread/ThreadCategoriesSection.tsx     "use client"
 components/thread/ThreadFeaturedSection.tsx       "use client"
-components/thread/ThreadOrderRequestForm.tsx      "use client"
 components/thread/ThreadFAQSection.tsx            "use client"
 components/thread/ThreadUI.tsx
 components/thread/ThreadStyles.tsx
@@ -158,9 +164,6 @@ components/thread/ThreadHeroSection.tsx
 components/thread/ThreadHeroBackdrop.tsx
 components/thread/ThreadBrandStorySection.tsx
 components/thread/ThreadQualitySection.tsx
-components/thread/ThreadUseCasesSection.tsx
-components/thread/ThreadProcessSection.tsx
-components/thread/ThreadGroupOrderSection.tsx
 components/thread/ThreadCTASection.tsx
 ```
 
@@ -189,76 +192,82 @@ interface ThreadCartContext {
   removeItem(key: string): void;
   clear(): void;
   totalPieces: number;
+  subtotalCents: number;            // display only
   isOpen: boolean;
   setOpen(open: boolean): void;
+  hydrated: boolean;
 }
 ```
 
 - **Variant identity** is `` `${productId}:${colorId}:${sizeId}` ``. Adding an
   existing variant increments quantity rather than appending a row.
-- **Persistence:** `localStorage`, key `thread-order-request-v1`. Read inside
+- **Lines carry no price.** `subtotalCents` looks every price up in
+  `data/thread.ts` on each render, so it always matches the catalog — and it
+  is still only a display. The checkout route prices the order itself.
+- **What can be added** is decided by `isThreadPurchasable` in
+  `data/thread.ts`: a `priceCents` and no `comingSoon`. The product card
+  renders anything else as a "Coming soon" card with no cart button, and only
+  adds a line with a real color and size.
+- **Persistence:** `localStorage`, key `thread-cart-v2`. Read inside
   `useEffect`, never during render — reading during render desyncs SSR and
-  client HTML and throws a hydration error. `localStorage` is per origin, so a
-  selection made on the parent site's old `/thread-t-shirts` page does not
-  carry over to this domain.
-- **Quantity bounds:** 1–1000 per line, clamped in the provider so the UI cannot
-  post something the API will reject.
-- **There is no minimum order.** Custom printing runs at any quantity, down to
-  a single piece, and the UI says nothing about quantity rules. There was a
-  5-piece minimum with a `meetsCustomMinimum` flag and notices in the cart
-  drawer, the request form, and the catalog header; all of it is gone. Do not
-  reintroduce a quantity gate or notice without a product decision behind it.
-- Design packages (`isPackage: true`) have no colors. Use `colorId: ""`,
-  `colorName: "—"` so the variant key stays well-formed.
+  client HTML and throws a hydration error. On load, lines whose product is no
+  longer for sale, or whose color or size it no longer runs, are dropped so
+  they cannot fail at checkout. v1 (`thread-order-request-v1`) held order
+  requests and is ignored.
+- **Quantity bounds:** 1–`THREAD_MAX_QUANTITY` (50) per line and
+  `THREAD_MAX_LINES` (100) lines, clamped in the provider. The route enforces
+  the same constants. 100 is Stripe's line-item cap for a Checkout Session.
+- **Cleared after payment** by `ThreadClearCartOnMount` on the confirmation
+  page, and only there — a customer who backs out of Stripe keeps their cart.
 
 ---
 
-## 6. `POST /api/thread-order`
+## 6. Checkout
 
-Same Resend construction, honeypot, server-side validation, plain-text email,
-and generic error messages as the form routes on the parent site.
+### `POST /api/checkout`
 
-**Request:**
+**Request:** `{ items: { productId, colorId, sizeId, quantity }[] }`. Any other
+field — a price, a name, a label — is ignored.
 
-```ts
-{
-  fullName: string;          // required, >= 2 chars
-  email: string;             // required — the reply channel for artwork
-  phone: string;             // required, >= 10 digits
-  organization?: string;
-  orderType: "ready-made" | "custom" | "both";
-  useCase?: string;          // business | team | school | event | ...
-  preferredContact: "email" | "phone" | "text";
-  needByDate?: string;
-  hasArtwork: "yes" | "no" | "unsure";
-  designNotes?: string;
-  additionalNotes?: string;
-  items: ThreadCartItem[];   // may be empty — custom-only requests are valid
-  honeypot?: string;
-}
-```
+**The rule:** prices resolve on the server. `resolveCheckoutLines` in
+`lib/checkout.ts` rebuilds every line from `data/thread.ts`: the product must
+exist and pass `isThreadPurchasable`, the color and size must be ones the
+product lists, and the quantity must be a whole number in bounds. Duplicate
+variants are merged, and the merged quantity is bounded too. One bad line
+rejects the whole cart — the browser validates the same things, so a bad line
+means a stale or edited cart, and charging for part of it would surprise the
+customer either way.
 
-**Two rules that matter:**
+Each line becomes a `price_data` line item: `unit_amount` from `priceCents`,
+`name` as `"Product — Color / Size"` (what the dashboard and receipt show),
+the product photo when the site is on https, and `{ productId, colorId,
+sizeId }` as product metadata.
 
-1. **Re-resolve every `productId` against `threadProducts` server-side and use
-   the server's product name in the email.** Never interpolate the client's
-   `productName` — that is an open channel for writing arbitrary text into your
-   inbox.
-2. **Bound the payload** before formatting: reject more than 100 line items, and
-   clamp each quantity to 1–1000. An unbounded cart becomes an unbounded email.
+**The session:** `mode: "payment"`, US shipping address collection, one free
+shipping rate, phone number collection, `metadata.site = "thread"` on the
+session and the PaymentIntent, and statement descriptor suffix `THREAD`.
+`success_url` is `/order/success?session_id={CHECKOUT_SESSION_ID}` and
+`cancel_url` is `/#catalog`, both on the origin the request came in on — so a
+preview deployment on test keys returns to itself, not to production.
 
-**Email is required** — artwork exchange happens over email, so a phone-only
-request cannot complete the flow.
+**Responses:**
 
-**Delivery:** `THREAD_TO_EMAIL || CONTACT_TO_EMAIL || ceo@leeenterprisesunlimited.com`.
-Default behavior is the shared Lee Enterprises inbox, as decided. The env var
-exists purely as an escape hatch, and carries the Resend caveat in
-`.env.example`: until a domain is verified in Resend, any recipient other than
-the account's own address is refused. These variables are set in this
-project's Vercel environment, not the parent's.
+| Status | Body | When |
+| --- | --- | --- |
+| 200 | `{ url }` | The browser goes there with `location.assign` |
+| 400 | `{ code: "bad_request" }` | Body is not JSON |
+| 400 | `{ code: "empty_cart" \| "too_many_lines" }` | |
+| 400 | `{ code: "invalid_item", invalidIndexes }` | A line failed validation |
+| 500 | `{ code: "payments_not_configured" }` | `STRIPE_SECRET_KEY` unset. Checked after validation |
+| 502 | `{ code: "checkout_failed" }` | Stripe refused or failed. Logged as `type`, `code`, `message` |
 
-Subject: `New Thread Order Request — ${fullName}`. Set `replyTo` to the
-customer's email.
+### `/order/success`
+
+A server page that reads the session back from Stripe with its line items. It
+renders only a session that carries `metadata.site = "thread"` and is paid;
+anything else — a made-up id, an unpaid session, another LEU flow's session —
+is a 404. It shows the items, the total paid, the shipping address, and the
+receipt email, and clears the saved cart. `noindex`, no canonical.
 
 ---
 
@@ -301,19 +310,23 @@ for its own use.
 - **No external image hosts.** The CSP is `img-src 'self' data: blob:`
   (`next.config.mjs`). A Shopify/Printful/Unsplash URL will be blocked. Real
   photos go in `/public/thread/`.
+- **No Stripe origins in the CSP, on purpose.** Hosted Checkout is a top-level
+  navigation, which the policy does not govern. Embedded Checkout or Stripe
+  Elements would need `js.stripe.com` in `script-src` and `frame-src` and
+  `api.stripe.com` in `connect-src` first.
 - **`images: { unoptimized: true }`** — `next/image` passes files through. SVG
   placeholders work as-is.
-- **No database.** Requests are email-only: no order numbers, no history, no
-  status lookup. Say "we'll reply within one business day," never "track your
-  order."
-- **Type errors fail the build here.** The parent's `ignoreBuildErrors` did not
-  come across. Still run `pnpm typecheck` and `pnpm lint` before pushing.
-- **Pre-launch honesty.** No delivery promise beyond "2–4 weeks from proof
-  approval," no claim about equipment beyond the agreed supplier language, and
-  no capability claim about print methods — screen print vs. DTG vs.
-  embroidery was never confirmed, so all copy stays method-agnostic. Placeholder
-  fabric weights in `data/thread.ts` must be confirmed before they are
-  advertised.
+- **No database.** Orders live in Stripe. There is no order history or status
+  page on this site; never promise "track your order" here.
+- **Type errors fail the build here.** Still run `pnpm typecheck` and
+  `pnpm lint` before pushing.
+- **Honest copy.** No delivery-time promise until one is decided, no claim
+  about print methods (screen print vs. DTG was never confirmed, so copy stays
+  method-agnostic), and no return policy until one is written. Placeholder
+  fabric weights in `data/thread.ts` must be confirmed — they are now on
+  products people pay for.
+- **No `Product`/`Offer` structured data** until the fabric copy is confirmed;
+  it would put that copy in front of search engines as fact.
 
 ---
 
@@ -324,22 +337,40 @@ Each step was independently verifiable in the browser.
 1. `ThreadCartProvider` — foundation everything else consumes
 2. Page + Hero + BrandStory + Quality — page renders and routes
 3. `ThreadProductCard` → Catalog → Categories → Featured — the largest step
-4. `ThreadCartDrawer` + `ThreadOrderRequestForm` + API route — the flow, end to end
-5. UseCases + Process + GroupOrder + FAQ + CTA — remaining content sections
+4. `ThreadCartDrawer` + `/api/checkout` + `/order/success` — the flow, end to end
+5. FAQ + CTA — remaining content sections
 6. The parent-site wiring in §7
 7. `pnpm typecheck`, `pnpm lint` and `pnpm build`
 
 ---
 
-## 10. Before this goes public
+## 10. Going live
+
+In Stripe (the LEU account):
+
+- [ ] Set `STRIPE_SECRET_KEY` in this project's Vercel environment: the live
+      key for Production, the test key for Preview
+- [ ] In test mode, buy something with card `4242 4242 4242 4242`, land on
+      `/order/success`, and find the payment in the dashboard filtered by
+      `metadata.site = thread`
+- [ ] **Settings → Emails:** turn on receipts for successful payments, so
+      customers get one
+- [ ] **Settings → Payment methods:** confirm cards, Apple Pay and Google Pay
+      are on for Checkout (the FAQ promises them)
+- [ ] **Settings → Public details:** check the statement descriptor; with the
+      `THREAD` suffix, charges read `<LEU prefix>* THREAD`
+- [ ] If the parent LEU site has a Stripe webhook, confirm it ignores
+      `checkout.session.completed` events whose `metadata.site` is `thread` —
+      the account is shared, so it will receive them
+- [ ] Decide on sales tax; Stripe Tax is one setting plus `automatic_tax` on
+      the session
+
+On the site:
 
 - [ ] Confirm the fabric weights in `data/thread.ts` or replace them
-- [ ] Confirm the supplier language in the `printing` FAQ is accurate
-- [ ] Replace the remaining placeholder images with real photos
-- [ ] Set real `priceCents` values where they are still null, or leave "Price
-      coming soon" until launch
-- [ ] Set `RESEND_API_KEY` in this project, send one live test request, and
-      confirm it lands in the inbox
+- [ ] Write a return/exchange policy, then add it to the FAQ
+- [ ] Replace the remaining placeholder images with real photos as the
+      "Coming soon" lines launch, and give each a `priceCents`
 - [ ] Decide whether the parent site's nav keeps linking to Thread at launch
 
 ---
@@ -419,3 +450,30 @@ select menus, scrollbars) rendered light against the dark page. Here they
 follow the dark scheme both sites declare, the way they already did for
 dark-mode visitors. Anchor offsets, the cart, the drawer, and the order API's
 responses match the parent exactly.
+
+---
+
+## 12. The store (2026-10-06)
+
+Thread stopped offering custom printing and started taking payment.
+
+**Removed:** the use-cases, process, and group-order sections; the order
+request form and `POST /api/thread-order`; the Event Shirts and Custom Design
+Packages categories and their request-only cards; the `proof` quality pillar;
+the FAQs about minimums, turnaround, design, artwork, the print supplier, and
+reorders; `THREAD_TURNAROUND`, `THREAD_IS_PRELAUNCH`; the `customizable`,
+`isPackage`, `includes`, `requestOnly`, and `ctaLabel` product fields; the
+`resend` dependency and its environment variables; four placeholder SVGs
+(`event`, `custom`, `team`, `performance`). The header nav lost "Custom
+Apparel" and "How It Works".
+
+**Added:** Stripe Checkout (§6), prices and a subtotal in the cart drawer,
+"Add to Cart", the confirmation page, and `stripe` as a dependency.
+
+**Rewritten:** the hero, brand story, catalog intro, FAQ, closing CTA, site
+title and description, keywords, link-preview text, footer tagline, and 404
+copy — all now about a label selling its own pieces. Every call to action
+points at the collection.
+
+**Unchanged:** the catalog's real tees — names, prices, photos, sizes, and
+copy — and the "Coming soon" hoodies, long sleeves, and business wear.

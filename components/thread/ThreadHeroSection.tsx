@@ -2,10 +2,7 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { THREAD_PALETTE, threadCopy } from "@/data/thread";
 import { ThreadHeroBackdrop } from "@/components/thread/ThreadHeroBackdrop";
-import {
-  threadPrimaryButtonClass,
-  threadSecondaryButtonClass,
-} from "@/components/thread/ThreadUI";
+import { threadPrimaryButtonClass } from "@/components/thread/ThreadUI";
 
 const { hero } = threadCopy;
 
@@ -70,18 +67,9 @@ export function ThreadHeroSection() {
                   {hero.primaryCta}
                   <ArrowRight className="h-4 w-4" />
                 </a>
-                <a
-                  href="#order-request"
-                  className={threadSecondaryButtonClass}
-                >
-                  {hero.secondaryCta}
-                  <ArrowRight className="h-4 w-4" />
-                </a>
               </div>
             </div>
 
-            {/* Prices are quoted per order rather than listed, so this line
-                stops the missing prices from reading as an oversight. */}
             <div>
               <p
                 className="mt-6 text-sm"

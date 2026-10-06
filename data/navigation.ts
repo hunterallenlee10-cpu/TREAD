@@ -13,9 +13,9 @@
  *
  * Every id here (the part after `/#`) must exist on a section in
  * `components/thread/`. The order is the order the sections appear down the
- * page. The page's own buttons still use bare `#catalog` / `#order-request`
- * hrefs, as they did on the parent site; they only ever render on the page
- * that carries those sections.
+ * page. The page's own buttons still use bare `#catalog` hrefs, as they did on
+ * the parent site; they only ever render on the page that carries that
+ * section.
  */
 export interface SiteNavItem {
   id: string;
@@ -25,10 +25,8 @@ export interface SiteNavItem {
 
 export const siteNav: readonly SiteNavItem[] = [
   { id: "nav-collection", label: "Collection", href: "/#catalog" },
-  { id: "nav-custom", label: "Custom Apparel", href: "/#custom-apparel" },
-  { id: "nav-process", label: "How It Works", href: "/#process" },
   { id: "nav-faq", label: "FAQ", href: "/#faq" },
 ];
 
-/** Where every "start an order" control outside the page's sections lands. */
-export const orderRequestHref = "/#order-request" as const;
+/** Where every "shop" control outside the page's sections lands. */
+export const shopHref = "/#catalog" as const;

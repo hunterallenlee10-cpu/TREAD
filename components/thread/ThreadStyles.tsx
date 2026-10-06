@@ -136,7 +136,7 @@ const css = `
    Status badge
    -------------------------------------------------------------------------- */
 
-/* "Now taking orders" is a live claim, so it gets a live indicator. The dot
+/* The hero badge is a live offer, so it gets a live indicator. The dot
    is the pop here — a pulsing point of warm light reads at a glance from
    across the hero, where a hairline outline did not. */
 .thread-badge {

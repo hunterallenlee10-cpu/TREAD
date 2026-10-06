@@ -1,13 +1,14 @@
 import Image from "next/image";
 import { Mail } from "lucide-react";
-import { THREAD_CONTACT_EMAIL, THREAD_PALETTE, threadCopy } from "@/data/thread";
-import { orderRequestHref, siteNav } from "@/data/navigation";
+import { THREAD_CONTACT_EMAIL, THREAD_PALETTE } from "@/data/thread";
+import { siteNav } from "@/data/navigation";
 import { PARENT_NAME, PARENT_SITE_URL, SITE_NAME } from "@/lib/site";
 
 /**
- * Thread is a Lee Enterprises Unlimited venture, and order requests deliver to
- * LEU's inbox, so the policies that apply are the ones LEU publishes. They are
- * linked rather than copied: one set of terms, maintained in one place.
+ * Thread is a Lee Enterprises Unlimited venture, and its payments go through
+ * LEU's Stripe account, so the policies that apply are the ones LEU publishes.
+ * They are linked rather than copied: one set of terms, maintained in one
+ * place.
  */
 const parentLinks = [
   { label: PARENT_NAME, href: PARENT_SITE_URL },
@@ -40,14 +41,12 @@ export function SiteFooter() {
               className="mb-4 h-14 w-[138px] object-cover object-top"
               style={{ filter: "brightness(1.16) contrast(1.06)" }}
             />
-            {/* Trimmed from the description the parent site keeps for Thread
-                (`data/ventures.ts` in the LEU repo). */}
             <p
               className="max-w-xs text-sm leading-relaxed"
               style={{ color: THREAD_PALETTE.muted }}
             >
-              Premium everyday apparel and custom designs for individuals,
-              brands, teams, businesses, and events.
+              Original premium apparel, designed in-house and shipped free
+              to your door.
             </p>
             <a
               href={`mailto:${THREAD_CONTACT_EMAIL}`}
@@ -75,11 +74,6 @@ export function SiteFooter() {
                   </a>
                 </li>
               ))}
-              <li>
-                <a href={orderRequestHref} className="thread-footer-link text-sm">
-                  {threadCopy.finalCta.primaryCta}
-                </a>
-              </li>
             </ul>
           </nav>
 

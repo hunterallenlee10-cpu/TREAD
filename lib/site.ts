@@ -26,11 +26,10 @@ export const SITE_URL = resolveSiteUrl();
 
 export const SITE_NAME = "Thread T-Shirts";
 
-/** Verbatim from the page's metadata as it was on the parent site. */
-export const SITE_TITLE = "Thread T-Shirts | Premium & Custom Apparel";
+export const SITE_TITLE = "Thread T-Shirts | Premium Everyday Apparel";
 
 export const SITE_DESCRIPTION =
-  "Premium everyday apparel and custom printed T-shirts, hoodies, and team gear for businesses, teams, schools, events, and fundraisers. Send an order request — no payment required.";
+  "Original premium T-shirts from Thread, a Lee Enterprises Unlimited label. Shop the collection, check out securely, and get free shipping on every order.";
 
 /** The parent company. The footer links back to it and to the policies it publishes. */
 export const PARENT_SITE_URL = "https://leeenterprisesunlimited.com";
