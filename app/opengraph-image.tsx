@@ -1,14 +1,12 @@
 import { ImageResponse } from "next/og";
-import { THREAD_PALETTE, threadCopy } from "@/data/thread";
+import { splitThreadAccent, THREAD_PALETTE, threadCopy } from "@/data/thread";
 import { readWordmarkDataUrl, WORDMARK } from "@/lib/logo";
 
 /**
- * The link preview, generated at build time. Same hierarchy as the hero: the
- * mark, then the headline with its second half in champagne. The hero's "Now
- * Taking Orders" badge is left off on purpose — a preview is cached by the
- * sites that show it for weeks, and a live claim would outlast the truth of
- * it. Rendered in next/og's bundled sans-serif; loading Geist here would mean
- * fetching a font at build time for one image.
+ * The link preview, generated at build time. The mark, then the hero's
+ * headline line for line with the same word in champagne. Rendered in
+ * next/og's bundled sans-serif; loading the hero's display face here would
+ * mean fetching a font at build time for one image.
  *
  * next/og lays out with flexbox and needs `display: flex` on every element
  * that has more than one child.
@@ -60,16 +58,23 @@ export default async function OpenGraphImage() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", marginTop: 48 }}>
-          <div style={{ fontSize: 68, lineHeight: 1.08 }}>{hero.title}</div>
-          <div
-            style={{
-              fontSize: 68,
-              lineHeight: 1.08,
-              color: THREAD_PALETTE.champagne,
-            }}
-          >
-            {hero.titleAccent}
-          </div>
+          {hero.titleLines.map((line) => {
+            const part = splitThreadAccent(line, hero.titleAccent);
+            return (
+              // `pre` keeps the space at the edge of each piece, which flex
+              // layout would otherwise collapse.
+              <div
+                key={line}
+                style={{ display: "flex", fontSize: 64, lineHeight: 1.08, whiteSpace: "pre" }}
+              >
+                <span>{part.before}</span>
+                {part.accent && (
+                  <span style={{ color: THREAD_PALETTE.champagne }}>{part.accent}</span>
+                )}
+                <span>{part.after}</span>
+              </div>
+            );
+          })}
         </div>
 
         <div

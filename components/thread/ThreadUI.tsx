@@ -25,6 +25,9 @@ export const threadPrimaryButtonClass = `${threadButtonBase} thread-btn--primary
 
 export const threadSecondaryButtonClass = `${threadButtonBase} thread-btn--secondary`;
 
+/** Champagne fill. The hero's one call to action, and nowhere else. */
+export const threadAccentButtonClass = `${threadButtonBase} thread-btn--accent`;
+
 export const threadCardStyle: CSSProperties = {
   backgroundColor: THREAD_PALETTE.charcoal,
   borderColor: THREAD_PALETTE.border,
