@@ -116,7 +116,7 @@ catalog-filter providers. Metadata lives in `app/layout.tsx`.
 
 | # | Section | Content source |
 | --- | --- | --- |
-| 1 | Hero | Free-shipping badge, headline, one CTA → `#catalog` |
+| 1 | Hero | `threadCopy.hero` — statement headline, one CTA → `#catalog`, "From $…" line read off the catalog, a strip of product names |
 | 2 | Brand story | `threadCopy.story` — one statement and a link to the collection |
 | 3 | Quality | `threadQualityPillars` (3) |
 | 4 | Catalog | `threadProducts` + category filter. `id="catalog"` |

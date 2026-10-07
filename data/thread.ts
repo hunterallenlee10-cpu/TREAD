@@ -761,13 +761,23 @@ export const threadProducts: ThreadProduct[] = [
 
 export const threadCopy = {
   hero: {
-    badge: "Free Shipping on Every Order",
-    title: "Wear Your Style.",
-    titleAccent: "Elevate Everyday Essentials.",
+    eyebrow: "Thread T-Shirts",
+    /** One entry per rendered line, at every width. */
+    titleLines: ["Wear what", "you stand", "for."],
+    /** The word inside `titleLines` set in champagne. */
+    titleAccent: "stand",
     description:
-      "Thread is an original apparel label. Premium blanks, careful prints, and a fit that holds its shape — designed in-house and shipped free to your door.",
+      "Original tees with something to say. Premium blanks, careful prints, a fit that holds — shipped free on every order.",
     primaryCta: "Shop the Collection",
-    note: "Every piece you wear supports the ventures behind Lee Enterprises Unlimited.",
+    /** The strip along the hero's foot. Short names of pieces on sale now. */
+    marquee: [
+      "Leave No Doubt",
+      "Achieve Your Dreams",
+      "Crusader",
+      "H1 Performance",
+      "LEU Athletic",
+      "Free Trevor Bauer",
+    ],
   },
   story: {
     eyebrow: "The Label",
@@ -906,6 +916,34 @@ export function formatThreadCents(cents: number): string {
     currency: "USD",
     minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
   }).format(cents / 100);
+}
+
+/**
+ * The lowest price in the store, or null while nothing is for sale. Read off
+ * the catalog so the hero's "From $…" line cannot drift from the real prices.
+ */
+export function getThreadLowestPriceCents(): number | null {
+  const prices = threadProducts
+    .filter(isThreadPurchasable)
+    .map((product) => product.priceCents as number);
+  return prices.length > 0 ? Math.min(...prices) : null;
+}
+
+/**
+ * Splits a headline line around its accent word, so the hero and the link
+ * preview colour the same word. A line without the accent comes back whole.
+ */
+export function splitThreadAccent(
+  line: string,
+  accent: string
+): { before: string; accent: string | null; after: string } {
+  const at = line.indexOf(accent);
+  if (at === -1) return { before: line, accent: null, after: "" };
+  return {
+    before: line.slice(0, at),
+    accent,
+    after: line.slice(at + accent.length),
+  };
 }
 
 /**

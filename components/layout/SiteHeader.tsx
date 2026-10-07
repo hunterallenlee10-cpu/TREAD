@@ -86,8 +86,8 @@ export function SiteHeader() {
             height={522}
             priority
             className="h-11 w-[108px] object-cover object-top"
-            // The same lift the hero gives the mark: the artwork is a
-            // near-bone grey only a few steps off `muted`.
+            // A lift for the artwork, which is a near-bone grey only a few
+            // steps off `muted`.
             style={{ filter: "brightness(1.16) contrast(1.06)" }}
           />
         </Link>

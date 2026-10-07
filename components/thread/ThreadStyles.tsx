@@ -132,37 +132,39 @@ const css = `
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.35);
 }
 
-/* --------------------------------------------------------------------------
-   Status badge
-   -------------------------------------------------------------------------- */
-
-/* The hero badge is a live offer, so it gets a live indicator. The dot
-   is the pop here — a pulsing point of warm light reads at a glance from
-   across the hero, where a hairline outline did not. */
-.thread-badge {
-  border: 1px solid rgba(${CHAMPAGNE}, 0.5);
+/* Accent — champagne fill, ink text. Built like the primary key (lit top,
+   shaded lower lip, warm ambient glow) so the two read as one family; only
+   the hero's call to action uses it. */
+.thread-btn--accent {
+  background-color: ${THREAD_PALETTE.champagne};
   background-image: linear-gradient(
     180deg,
-    rgba(${CHAMPAGNE}, 0.18),
-    rgba(${CHAMPAGNE}, 0.06)
+    rgba(255, 255, 255, 0.28),
+    rgba(255, 255, 255, 0) 55%
   );
-  color: ${THREAD_PALETTE.champagne};
+  color: ${THREAD_PALETTE.ink};
   box-shadow:
-    inset 0 1px 0 rgba(${CHAMPAGNE}, 0.22),
-    0 10px 28px -16px rgba(${CHAMPAGNE}, 0.7);
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(${INK}, 0.25),
+    0 2px 6px rgba(0, 0, 0, 0.5),
+    0 14px 34px -16px rgba(${CHAMPAGNE}, 0.7);
 }
 
-.thread-badge__dot {
-  background-color: ${THREAD_PALETTE.champagne};
-  animation: thread-badge-pulse 2.6s ease-out infinite;
+.thread-btn--accent:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background-color: ${THREAD_PALETTE.bone};
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(${INK}, 0.2),
+    0 4px 10px rgba(0, 0, 0, 0.55),
+    0 20px 44px -18px rgba(${CHAMPAGNE}, 0.9);
 }
 
-/* Ring expands and fades rather than the dot scaling, so nothing in the pill
-   shifts the text baseline while it runs. */
-@keyframes thread-badge-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(${CHAMPAGNE}, 0.6); }
-  70%  { box-shadow: 0 0 0 0.5rem rgba(${CHAMPAGNE}, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(${CHAMPAGNE}, 0); }
+.thread-btn--accent:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.25),
+    0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 /* --------------------------------------------------------------------------
@@ -580,7 +582,6 @@ const css = `
    Only the transform part is dropped, since that is the piece that moves
    without being asked. */
 @media (prefers-reduced-motion: reduce) {
-  .thread-badge__dot { animation: none; }
   .thread-cart-trigger__ring { animation: none; }
   /* The trigger still needs to arrive, it just arrives without travelling —
      dropping the animation entirely would leave it at the keyframe's starting
