@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
+import { THREAD_RETURN_POLICY } from "@/data/thread";
 import { resolveCheckoutLines } from "@/lib/checkout";
 import { SITE_URL } from "@/lib/site";
 import {
@@ -67,6 +68,9 @@ export async function POST(request: NextRequest) {
         },
       ],
       phone_number_collection: { enabled: true },
+      // Shown above the Pay button, so the no-returns policy is the last thing
+      // the customer reads before paying.
+      custom_text: { submit: { message: THREAD_RETURN_POLICY } },
       metadata: { ...THREAD_STRIPE_METADATA },
       payment_intent_data: {
         metadata: { ...THREAD_STRIPE_METADATA },

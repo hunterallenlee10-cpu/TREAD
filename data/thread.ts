@@ -98,6 +98,15 @@ export const THREAD_MAX_LINES = 100;
 export const THREAD_CONTACT_EMAIL = "ceo@leeenterprisesunlimited.com";
 
 /**
+ * The return policy: all sales are final. One line, shown in three places so
+ * nobody pays without seeing it — the cart under the Checkout button, the
+ * Stripe Checkout page above the Pay button (app/api/checkout), and the FAQ,
+ * which carries the full answer below.
+ */
+export const THREAD_RETURN_POLICY =
+  "All sales are final. No returns or exchanges.";
+
+/**
  * Every size Thread runs, in the order they render. A product opts into
  * the ones it actually runs, so adding to this list never changes an existing
  * listing — `getThreadSizes` filters by the product's own ids.
@@ -867,6 +876,11 @@ export const threadFaqs: ThreadFaq[] = [
     question: "How do I know my order went through?",
     answer:
       "You land on an order confirmation page as soon as payment goes through, and a receipt is emailed to the address you entered at checkout.",
+  },
+  {
+    id: "returns",
+    question: "Can I return or exchange my order?",
+    answer: `No. All sales are final, and we don't accept returns or exchanges, so please double-check your size and color before you check out. If your order arrives damaged or isn't what you ordered, email ${THREAD_CONTACT_EMAIL} and we'll make it right.`,
   },
   {
     id: "sizes",
