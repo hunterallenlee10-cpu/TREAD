@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Lock, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import {
   THREAD_MAX_QUANTITY,
@@ -172,8 +173,8 @@ export function ThreadCartDrawer() {
               ) : (
                 <ul className="space-y-5">
                   {items.map((item) => {
-                    const unitCents =
-                      getThreadProductById(item.productId)?.priceCents ?? 0;
+                    const product = getThreadProductById(item.productId);
+                    const unitCents = product?.priceCents ?? 0;
 
                     return (
                       <li
@@ -181,73 +182,88 @@ export function ThreadCartDrawer() {
                         className="border-b pb-5 last:border-b-0"
                         style={{ borderColor: THREAD_PALETTE.border }}
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p
-                              className="font-semibold"
-                              style={{ color: THREAD_PALETTE.bone }}
-                            >
-                              {item.productName}
-                            </p>
-                            <p
-                              className="mt-1 text-sm"
-                              style={{ color: THREAD_PALETTE.muted }}
-                            >
-                              {item.colorName} · {item.sizeLabel}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeItem(item.key)}
-                            aria-label={`Remove ${item.productName}`}
-                            style={{ color: THREAD_PALETTE.muted }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
+                        <div className="flex gap-4">
+                          {/* The front photo, on the same white ground as the
+                              product card. Decorative: the name sits beside it. */}
+                          {product && (
+                            <Image
+                              src={product.image}
+                              alt=""
+                              width={72}
+                              height={72}
+                              className="h-[72px] w-[72px] shrink-0 rounded-md bg-white object-contain"
+                            />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p
+                                  className="font-semibold"
+                                  style={{ color: THREAD_PALETTE.bone }}
+                                >
+                                  {item.productName}
+                                </p>
+                                <p
+                                  className="mt-1 text-sm"
+                                  style={{ color: THREAD_PALETTE.muted }}
+                                >
+                                  {item.colorName} · {item.sizeLabel}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeItem(item.key)}
+                                aria-label={`Remove ${item.productName}`}
+                                style={{ color: THREAD_PALETTE.muted }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
 
-                        <div className="mt-3 flex items-center justify-between gap-3">
-                          <div
-                            className="inline-flex items-center rounded-md border"
-                            style={{ borderColor: THREAD_PALETTE.border }}
-                          >
-                            <button
-                              type="button"
-                              onClick={() =>
-                                updateQuantity(item.key, item.quantity - 1)
-                              }
-                              disabled={item.quantity <= 1}
-                              aria-label="Decrease quantity"
-                              className="px-3 py-1.5 disabled:opacity-30"
-                              style={{ color: THREAD_PALETTE.bone }}
-                            >
-                              <Minus className="h-3.5 w-3.5" />
-                            </button>
-                            <span
-                              className="w-12 text-center text-sm font-semibold"
-                              style={{ color: THREAD_PALETTE.bone }}
-                            >
-                              {item.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                updateQuantity(item.key, item.quantity + 1)
-                              }
-                              disabled={item.quantity >= THREAD_MAX_QUANTITY}
-                              aria-label="Increase quantity"
-                              className="px-3 py-1.5 disabled:opacity-30"
-                              style={{ color: THREAD_PALETTE.bone }}
-                            >
-                              <Plus className="h-3.5 w-3.5" />
-                            </button>
+                            <div className="mt-3 flex items-center justify-between gap-3">
+                              <div
+                                className="inline-flex items-center rounded-md border"
+                                style={{ borderColor: THREAD_PALETTE.border }}
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateQuantity(item.key, item.quantity - 1)
+                                  }
+                                  disabled={item.quantity <= 1}
+                                  aria-label="Decrease quantity"
+                                  className="px-3 py-1.5 disabled:opacity-30"
+                                  style={{ color: THREAD_PALETTE.bone }}
+                                >
+                                  <Minus className="h-3.5 w-3.5" />
+                                </button>
+                                <span
+                                  className="w-12 text-center text-sm font-semibold"
+                                  style={{ color: THREAD_PALETTE.bone }}
+                                >
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateQuantity(item.key, item.quantity + 1)
+                                  }
+                                  disabled={item.quantity >= THREAD_MAX_QUANTITY}
+                                  aria-label="Increase quantity"
+                                  className="px-3 py-1.5 disabled:opacity-30"
+                                  style={{ color: THREAD_PALETTE.bone }}
+                                >
+                                  <Plus className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                              <p
+                                className="text-sm font-semibold tabular-nums"
+                                style={{ color: THREAD_PALETTE.bone }}
+                              >
+                                {formatThreadCents(unitCents * item.quantity)}
+                              </p>
+                            </div>
                           </div>
-                          <p
-                            className="text-sm font-semibold tabular-nums"
-                            style={{ color: THREAD_PALETTE.bone }}
-                          >
-                            {formatThreadCents(unitCents * item.quantity)}
-                          </p>
                         </div>
                       </li>
                     );

@@ -30,7 +30,7 @@ Stripe dashboard setup and business confirmation, not code — see §10.
 | --- | --- |
 | Route | `/`, on its own site. `leeenterprisesunlimited.com/thread-t-shirts` redirects here |
 | What it sells | **Thread's own products only.** No custom printing, group orders, or quotes |
-| Launch state | **Selling.** The Signature Tees are for sale; the other categories are "Coming soon" |
+| Launch state | **Selling.** The Signature Tees are for sale. The other categories are "Coming soon" entries in the data, kept off the page (see §5) |
 | Prices | Per product, in cents. `priceCents: null` renders "Price coming soon" and cannot be bought |
 | Checkout | **Stripe Checkout, hosted.** The customer pays on checkout.stripe.com |
 | Stripe account | The **Lee Enterprises Unlimited** account. Every session and payment is tagged `metadata.site = "thread"` |
@@ -206,9 +206,12 @@ interface ThreadCartContext {
   `data/thread.ts` on each render, so it always matches the catalog — and it
   is still only a display. The checkout route prices the order itself.
 - **What can be added** is decided by `isThreadPurchasable` in
-  `data/thread.ts`: a `priceCents` and no `comingSoon`. The product card
-  renders anything else as a "Coming soon" card with no cart button, and only
-  adds a line with a real color and size.
+  `data/thread.ts`: a `priceCents` and no `comingSoon`. The catalog lists only
+  those pieces: placeholder cards made the store read as a demo, so a single
+  line under the grid ("Hoodies, long sleeves, and business wear are on the
+  way.") stands in for them, and the category filter only appears once a
+  second category has something for sale. The product card still has its
+  "Coming soon" layout, and only adds a line with a real color and size.
 - **Persistence:** `localStorage`, key `thread-cart-v2`. Read inside
   `useEffect`, never during render — reading during render desyncs SSR and
   client HTML and throws a hydration error. On load, lines whose product is no

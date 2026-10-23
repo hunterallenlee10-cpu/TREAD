@@ -12,8 +12,8 @@ import { PARENT_NAME, PARENT_SITE_URL, SITE_NAME } from "@/lib/site";
  */
 const parentLinks = [
   { label: PARENT_NAME, href: PARENT_SITE_URL },
-  { label: "Privacy Policy", href: `${PARENT_SITE_URL}/#privacy` },
-  { label: "Terms of Service", href: `${PARENT_SITE_URL}/#terms` },
+  { label: "Privacy Policy", href: `${PARENT_SITE_URL}/legal#privacy` },
+  { label: "Terms of Service", href: `${PARENT_SITE_URL}/legal#terms` },
 ];
 
 export function SiteFooter() {

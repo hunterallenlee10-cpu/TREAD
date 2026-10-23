@@ -776,7 +776,7 @@ export const threadCopy = {
     /** The word inside `titleLines` set in champagne. */
     titleAccent: "stand",
     description:
-      "Original tees with something to say. Premium blanks, careful prints, a fit that holds — shipped free on every order.",
+      "Original tees with something to say. Premium shirts, careful prints, a fit that holds — shipped free on every order.",
     primaryCta: "Shop the Collection",
     /** The strip along the hero's foot. Short names of pieces on sale now. */
     marquee: [
@@ -791,7 +791,7 @@ export const threadCopy = {
   story: {
     eyebrow: "The Label",
     title: "Original Pieces, Made to Last",
-    lead: "Thread makes its own apparel and nothing else. Every design starts here, goes onto fabric chosen to hold up, and is cut to a fit that stays consistent from one piece to the next.",
+    lead: "Thread makes its own apparel and nothing else. Every design starts here and goes onto a shirt chosen to hold up, in sizes that fit the same from one piece to the next.",
     cta: "Shop the Collection",
     href: "#catalog",
   },
@@ -818,6 +818,8 @@ export const threadCopy = {
     description:
       "Pick your color, size, and quantity, add it to your cart, and check out securely. Shipping is free on every order.",
     allLabel: "All Products",
+    /** Under the grid: what the "Coming soon" entries amount to, without listing them. */
+    comingNext: "Hoodies, long sleeves, and business wear are on the way.",
   },
   faq: {
     eyebrow: "Questions",
@@ -842,7 +844,7 @@ export const threadQualityPillars: ThreadQualityPillar[] = [
     id: "fabric",
     title: "Fabric That Holds Up",
     description:
-      "Combed and ringspun cotton, pre-shrunk before it is cut. The shirt you get back from the third wash should still be the shirt you ordered.",
+      "Soft 5.5 oz cotton tees and featherweight 2.5 oz performance shirts, each chosen to keep its shape. The shirt you get back from the third wash should still be the shirt you ordered.",
   },
   {
     id: "print",
@@ -854,7 +856,7 @@ export const threadQualityPillars: ThreadQualityPillar[] = [
     id: "fit",
     title: "Fit You Can Predict",
     description:
-      "Consistent sizing from S through 3XL, so the size you pick is the fit you get.",
+      "Sizing that runs true from one style to the next, so the size you pick is the fit you get.",
   },
 ];
 
@@ -886,7 +888,7 @@ export const threadFaqs: ThreadFaq[] = [
     id: "sizes",
     question: "What sizes are available?",
     answer:
-      "S through 3XL across the line. Sizing stays consistent between styles, so a large in a tee matches a large in a hoodie.",
+      "Most styles run S through 3XL, and the athletic shirts go up to 4XL. Each piece lists its exact sizes, and sizing runs true from one style to the next.",
   },
 ];
 
