@@ -8,6 +8,7 @@ import {
   THREAD_STRIPE_METADATA,
   getStripe,
   isStripeConfigured,
+  isStripeKeyUsable,
 } from "@/lib/stripe";
 
 /**
@@ -41,6 +42,16 @@ export async function POST(request: NextRequest) {
   if (!isStripeConfigured()) {
     console.error(
       "[thread] STRIPE_SECRET_KEY is not set - checkout cannot start."
+    );
+    return NextResponse.json(
+      { code: "payments_not_configured" },
+      { status: 500 }
+    );
+  }
+
+  if (!isStripeKeyUsable()) {
+    console.error(
+      "[thread] STRIPE_SECRET_KEY is not a secret key - it must start with sk_live_ (or sk_test_ on Preview). Check it isn't the publishable pk_ key."
     );
     return NextResponse.json(
       { code: "payments_not_configured" },
