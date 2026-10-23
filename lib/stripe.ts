@@ -10,11 +10,28 @@ import Stripe from "stripe";
  * `stripe` package is the one place the version moves.
  */
 export function getStripe(): Stripe {
-  return new Stripe(process.env.STRIPE_SECRET_KEY ?? "");
+  return new Stripe(getSecretKey());
+}
+
+/**
+ * Trimmed because a key pasted into Vercel easily picks up a trailing space or
+ * line break, and Stripe then rejects every request with no hint why.
+ */
+function getSecretKey(): string {
+  return process.env.STRIPE_SECRET_KEY?.trim() ?? "";
 }
 
 export function isStripeConfigured(): boolean {
-  return Boolean(process.env.STRIPE_SECRET_KEY?.trim());
+  return Boolean(getSecretKey());
+}
+
+/**
+ * A secret key starts `sk_` and a restricted key `rk_`. Anything else, most
+ * often the publishable `pk_` key copied from the same Stripe page, can never
+ * create a Checkout Session, so the route reports it by name.
+ */
+export function isStripeKeyUsable(): boolean {
+  return /^(sk|rk)_(live|test)_/.test(getSecretKey());
 }
 
 /**
