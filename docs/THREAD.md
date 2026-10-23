@@ -36,6 +36,7 @@ Stripe dashboard setup and business confirmation, not code — see §10.
 | Stripe account | The **Lee Enterprises Unlimited** account. Every session and payment is tagged `metadata.site = "thread"` |
 | Shipping | **Free**, US addresses only |
 | Tax | Not collected (Stripe Tax is off) |
+| Returns | **None.** All sales are final; damaged or wrong items are handled by email |
 | Product photos | Real photos for the tees; generated SVG placeholders elsewhere, swappable per product |
 | Sizes | S, M, L, XL, 2XL, 3XL (4XL is a per-product opt-in) |
 | Cart limits | 1–50 per line, 100 lines (`THREAD_MAX_QUANTITY`, `THREAD_MAX_LINES`) |
@@ -245,7 +246,9 @@ sizeId }` as product metadata.
 
 **The session:** `mode: "payment"`, US shipping address collection, one free
 shipping rate, phone number collection, `metadata.site = "thread"` on the
-session and the PaymentIntent, and statement descriptor suffix `THREAD`.
+session and the PaymentIntent, statement descriptor suffix `THREAD`, and the
+return policy (`THREAD_RETURN_POLICY`) as `custom_text.submit`, above the Pay
+button.
 `success_url` is `/order/success?session_id={CHECKOUT_SESSION_ID}` and
 `cancel_url` is `/#catalog`, both on the origin the request came in on — so a
 preview deployment on test keys returns to itself, not to production.
@@ -322,7 +325,10 @@ for its own use.
   `pnpm lint` before pushing.
 - **Honest copy.** No delivery-time promise until one is decided, no claim
   about print methods (screen print vs. DTG was never confirmed, so copy stays
-  method-agnostic), and no return policy until one is written. Placeholder
+  method-agnostic). The return policy is **all sales final**
+  (`THREAD_RETURN_POLICY` in `data/thread.ts`): the cart, the Stripe Checkout
+  page, and the FAQ all show it; don't promise returns or exchanges anywhere
+  else. Placeholder
   fabric weights in `data/thread.ts` must be confirmed — they are now on
   products people pay for.
 - **No `Product`/`Offer` structured data** until the fabric copy is confirmed;
@@ -368,7 +374,9 @@ In Stripe (the LEU account):
 On the site:
 
 - [ ] Confirm the fabric weights in `data/thread.ts` or replace them
-- [ ] Write a return/exchange policy, then add it to the FAQ
+- [x] Write a return/exchange policy, then add it to the FAQ — all sales
+      final, no returns or exchanges (2026-10-23); damaged or wrong items are
+      handled by email
 - [ ] Replace the remaining placeholder images with real photos as the
       "Coming soon" lines launch, and give each a `priceCents`
 - [ ] Decide whether the parent site's nav keeps linking to Thread at launch

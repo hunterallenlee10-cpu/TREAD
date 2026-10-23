@@ -83,7 +83,7 @@ export function ThreadProductCard({ product }: { product: ThreadProduct }) {
 
   const [colorId, setColorId] = useState(colors[0]?.id ?? "");
   // Deliberately unset. A defaulted size is the kind of thing someone misses
-  // at checkout, and a wrong size costs a return.
+  // at checkout, and sales are final, so a wrong size can't be returned.
   const [sizeId, setSizeId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [showDetails, setShowDetails] = useState(false);

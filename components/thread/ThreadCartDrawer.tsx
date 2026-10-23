@@ -5,6 +5,7 @@ import { Lock, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import {
   THREAD_MAX_QUANTITY,
   THREAD_PALETTE,
+  THREAD_RETURN_POLICY,
   formatThreadCents,
   getThreadProductById,
 } from "@/data/thread";
@@ -299,7 +300,7 @@ export function ThreadCartDrawer() {
                 className="mt-3 text-center text-xs"
                 style={{ color: THREAD_PALETTE.muted }}
               >
-                Secure checkout by Stripe.
+                Secure checkout by Stripe. {THREAD_RETURN_POLICY}
               </p>
             </footer>
           </aside>
